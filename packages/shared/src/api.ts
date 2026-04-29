@@ -51,6 +51,11 @@ export const SaveDraftResponseSchema = z.object({
   save_record_id: z.string().min(1),
 })
 
+export const SaveResponseSchema = z.object({
+  vault_path: z.string().min(1),
+  save_record_id: z.string().min(1),
+})
+
 export const DeviceRegistrationRequestSchema = z.object({
   install_id: z.string().min(1),
 })
@@ -64,5 +69,6 @@ export type CaptureRequest = z.infer<typeof CaptureRequestSchema>
 export type ChatRequest = z.infer<typeof ChatRequestSchema>
 export type SaveRequest = z.infer<typeof SaveRequestSchema>
 export type SaveDraftResponse = z.infer<typeof SaveDraftResponseSchema>
+export type SaveResponse = z.infer<typeof SaveResponseSchema>
 export type DeviceRegistrationRequest = z.infer<typeof DeviceRegistrationRequestSchema>
 export type AnalysisResultParsed = z.infer<typeof AnalysisResultSchema>

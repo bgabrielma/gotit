@@ -17,11 +17,13 @@ export class VisionAI {
   private constructor(private readonly backend: VisionBackend) {}
 
   static create(args: { apiKey: string; model: string }): VisionAI {
-    return new VisionAI(new AnthropicVisionBackend(args.apiKey, args.model))
+    const backend = new AnthropicVisionBackend(args.apiKey, args.model)
+    return new VisionAI(backend)
   }
 
   static createNull(config: NullableVisionConfig = {}): VisionAI {
-    return new VisionAI(new StubVisionBackend(config))
+    const backend = new StubVisionBackend(config)
+    return new VisionAI(backend)
   }
 
   analyze(args: VisionAnalyzeArgs): Promise<AnalysisResult> {
@@ -31,8 +33,11 @@ export class VisionAI {
 
 class StubVisionBackend implements VisionBackend {
   constructor(private readonly config: NullableVisionConfig) {}
+
   async analyze(): Promise<AnalysisResult> {
-    if (this.config.failure) throw this.config.failure
+    if (this.config.failure) {
+      throw this.config.failure
+    }
     return (
       this.config.analysis ?? {
         raw_text: '',
@@ -53,6 +58,7 @@ class AnthropicVisionBackend implements VisionBackend {
   ) {
     this.client = new Anthropic({ apiKey })
   }
+
   async analyze({ image, prompt }: VisionAnalyzeArgs): Promise<AnalysisResult> {
     const resp = await this.client.messages.create({
       model: this.model,

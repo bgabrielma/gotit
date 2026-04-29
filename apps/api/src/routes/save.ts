@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { v4 as uuid } from 'uuid'
-import { SaveDraftResponseSchema, SaveRequestSchema } from '@got-it/shared'
+import { SaveRequestSchema, SaveResponseSchema } from '@got-it/shared'
 import { formatObsidianEntry, resolveSaveFormat, slugifySummary } from '@got-it/core'
 import type { Message } from '@got-it/shared'
 import type { AppDeps } from '../app.js'
@@ -64,6 +64,18 @@ export function saveRouter(deps: AppDeps): Router {
       savedAt,
       title,
     })
+    let fullPath: string
+    try {
+      const result = await deps.obsidianWriter.write({
+        vaultPath: deps.vaultPath,
+        relativePath,
+        contents,
+      })
+      fullPath = result.fullPath
+    } catch (e) {
+      res.status(422).json({ error: e instanceof Error ? e.message : 'vault write failed' })
+      return
+    }
     const record: Message = {
       id: uuid(),
       session_id: session.id,
@@ -73,9 +85,8 @@ export function saveRouter(deps: AppDeps): Router {
       created_at: new Date().toISOString(),
     }
     deps.store.appendMessage(record)
-    const response = SaveDraftResponseSchema.parse({
-      vault_relative_path: relativePath,
-      markdown: contents,
+    const response = SaveResponseSchema.parse({
+      vault_path: fullPath,
       save_record_id: record.id,
     })
     res.status(201).json(response)

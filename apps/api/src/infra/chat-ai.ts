@@ -16,11 +16,13 @@ export class ChatAI {
   private constructor(private readonly backend: ChatBackend) {}
 
   static create(args: { apiKey: string; model: string }): ChatAI {
-    return new ChatAI(new AnthropicChatBackend(args.apiKey, args.model))
+    const backend = new AnthropicChatBackend(args.apiKey, args.model)
+    return new ChatAI(backend)
   }
 
   static createNull(config: NullableChatConfig = {}): ChatAI {
-    return new ChatAI(new StubChatBackend(config))
+    const backend = new StubChatBackend(config)
+    return new ChatAI(backend)
   }
 
   complete(args: ChatCompleteArgs): Promise<string> {
@@ -31,8 +33,11 @@ export class ChatAI {
 class StubChatBackend implements ChatBackend {
   private idx = 0
   constructor(private readonly config: NullableChatConfig) {}
+
   async complete(): Promise<string> {
-    if (this.config.failure) throw this.config.failure
+    if (this.config.failure) {
+      throw this.config.failure
+    }
     const responses = this.config.responses ?? ['']
     const r = responses[this.idx % responses.length] ?? ''
     this.idx += 1
@@ -48,6 +53,7 @@ class AnthropicChatBackend implements ChatBackend {
   ) {
     this.client = new Anthropic({ apiKey })
   }
+
   async complete({ system, messages }: ChatCompleteArgs): Promise<string> {
     const resp = await this.client.messages.create({
       model: this.model,
@@ -56,7 +62,9 @@ class AnthropicChatBackend implements ChatBackend {
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
     })
     const block = resp.content[0]
-    if (!block || block.type !== 'text') throw new Error('ChatAI: no text block')
+    if (!block || block.type !== 'text') {
+      throw new Error('ChatAI: no text block')
+    }
     return block.text
   }
 }

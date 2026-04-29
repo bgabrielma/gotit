@@ -33,11 +33,13 @@ export class Store {
     db.pragma('foreign_keys = ON')
     const sql = readFileSync(resolve(args.migrationsDir, '001_init.sql'), 'utf8')
     db.exec(sql)
-    return new Store(new SqliteBackend(db))
+    const backend = new SqliteBackend(db)
+    return new Store(backend)
   }
 
   static createNull(): Store {
-    return new Store(new InMemoryBackend())
+    const backend = new InMemoryBackend()
+    return new Store(backend)
   }
 
   registerDevice(args: { install_id: string }) {
@@ -79,7 +81,8 @@ class InMemoryBackend implements StoreBackend {
   registerDevice({ install_id }: { install_id: string }) {
     for (const d of this.devices.values()) {
       if (d.install_id === install_id) {
-        return { device_id: d.id, token: d.token }
+        const result = { device_id: d.id, token: d.token }
+        return result
       }
     }
     const id = uuid()
@@ -146,7 +149,9 @@ class SqliteBackend implements StoreBackend {
     const existing = this.db
       .prepare('SELECT id, token FROM devices WHERE install_id = ?')
       .get(install_id) as { id: string; token: string } | undefined
-    if (existing) return { device_id: existing.id, token: existing.token }
+    if (existing) {
+      return { device_id: existing.id, token: existing.token }
+    }
     const id = uuid()
     const token = uuid()
     this.db

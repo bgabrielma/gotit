@@ -4,6 +4,7 @@ import { createApp } from '../app.js'
 import { Store } from '../infra/store.js'
 import { VisionAI } from '../infra/vision-ai.js'
 import { ChatAI } from '../infra/chat-ai.js'
+import { ObsidianWriter } from '../infra/obsidian-writer.js'
 import type { Message } from '@got-it/shared'
 
 const captureMsg: Omit<
@@ -48,8 +49,10 @@ function setupWithCapture(chatResponses: string[] = []) {
     store,
     visionAI: VisionAI.createNull(),
     chatAI: ChatAI.createNull({ responses: chatResponses }),
+    obsidianWriter: ObsidianWriter.createNull(),
     visionPrompt: 'p',
     chatPersonaPrompt: 'p',
+    vaultPath: '/tmp/vault',
     captureFolder: 'GotIt!',
     dataDir: '/tmp/data',
     version: 'test',
@@ -58,15 +61,12 @@ function setupWithCapture(chatResponses: string[] = []) {
 }
 
 describe('POST /save', () => {
-  it('returns a vault draft payload for client-side Vault API write', async () => {
+  it('writes the file to the vault and returns vault_path and save_record_id', async () => {
     const { app, token } = setupWithCapture()
     const res = await request(app).post('/save').set('Authorization', `Bearer ${token}`).send({})
     expect(res.status).toBe(201)
-    expect(res.body.vault_relative_path.startsWith('GotIt!/')).toBe(true)
-    expect(res.body.vault_relative_path.endsWith('.md')).toBe(true)
-    expect(res.body.markdown).toContain('# A page about A')
-    expect(res.body.markdown).toContain('## Notes')
-    expect(res.body.markdown).toContain('Notes about the page.')
+    expect(res.body.vault_path.startsWith('/tmp/vault/GotIt!/')).toBe(true)
+    expect(res.body.vault_path.endsWith('.md')).toBe(true)
     expect(res.body.save_record_id).toBeTruthy()
   })
 
@@ -77,8 +77,8 @@ describe('POST /save', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ instruction: 'save as a code snippet' })
     expect(res.status).toBe(201)
-    expect(res.body.markdown).toContain('code body from AI')
-    expect(res.body.markdown).not.toContain('## Notes')
+    expect(res.body.vault_path.startsWith('/tmp/vault/GotIt!/')).toBe(true)
+    expect(res.body.save_record_id).toBeTruthy()
   })
 
   it('returns 422 when active session has no capture yet', async () => {
@@ -91,13 +91,44 @@ describe('POST /save', () => {
       store,
       visionAI: VisionAI.createNull(),
       chatAI: ChatAI.createNull(),
+      obsidianWriter: ObsidianWriter.createNull(),
       visionPrompt: 'p',
       chatPersonaPrompt: 'p',
+      vaultPath: '/tmp/vault',
       captureFolder: 'GotIt!',
       dataDir: '/tmp/data',
       version: 'test',
     })
     const res = await request(app).post('/save').set('Authorization', `Bearer ${token}`).send({})
     expect(res.status).toBe(422)
+  })
+
+  it('returns 422 when vault write fails', async () => {
+    const store = Store.createNull()
+    const { token } = store.registerDevice({ install_id: 'i' })
+    const device = store.findDeviceByToken(token)!
+    const session = store.createSession({ device_id: device.id, now: new Date() })
+    store.setActiveSession({ device_id: device.id, session_id: session.id })
+    store.appendMessage({
+      ...captureMsg,
+      id: 'cap2',
+      session_id: session.id,
+      created_at: new Date().toISOString(),
+    })
+    const app = createApp({
+      store,
+      visionAI: VisionAI.createNull(),
+      chatAI: ChatAI.createNull(),
+      obsidianWriter: ObsidianWriter.createNull({ writeFailure: new Error('ENOSPC') }),
+      visionPrompt: 'p',
+      chatPersonaPrompt: 'p',
+      vaultPath: '/tmp/vault',
+      captureFolder: 'GotIt!',
+      dataDir: '/tmp/data',
+      version: 'test',
+    })
+    const res = await request(app).post('/save').set('Authorization', `Bearer ${token}`).send({})
+    expect(res.status).toBe(422)
+    expect(res.body.error).toContain('ENOSPC')
   })
 })

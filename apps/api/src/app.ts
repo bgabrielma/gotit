@@ -2,6 +2,7 @@ import express, { type Express } from 'express'
 import type { Store } from './infra/store.js'
 import type { VisionAI } from './infra/vision-ai.js'
 import type { ChatAI } from './infra/chat-ai.js'
+import type { ObsidianWriter } from './infra/obsidian-writer.js'
 import { healthRoute } from './routes/health.js'
 import { deviceRoute } from './routes/device.js'
 import { sessionsRouter } from './routes/sessions.js'
@@ -13,8 +14,10 @@ export type AppDeps = {
   store: Store
   visionAI: VisionAI
   chatAI: ChatAI
+  obsidianWriter: ObsidianWriter
   visionPrompt: string
   chatPersonaPrompt: string
+  vaultPath: string
   captureFolder: string
   dataDir: string
   version: string

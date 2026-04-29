@@ -4,6 +4,7 @@ import { createApp } from '../app.js'
 import { Store } from '../infra/store.js'
 import { VisionAI } from '../infra/vision-ai.js'
 import { ChatAI } from '../infra/chat-ai.js'
+import { ObsidianWriter } from '../infra/obsidian-writer.js'
 
 const sampleAnalysis = {
   raw_text: 'README for cool-lib',
@@ -29,8 +30,10 @@ function setup(opts: { chatResponse?: string; visionAnalysis?: typeof sampleAnal
     chatAI: ChatAI.createNull({
       responses: [opts.chatResponse ?? 'Looks like a JSON parser repo.'],
     }),
+    obsidianWriter: ObsidianWriter.createNull(),
     visionPrompt: 'p',
     chatPersonaPrompt: 'p',
+    vaultPath: '/tmp/vault',
     captureFolder: 'GotIt!',
     dataDir: '/tmp/data',
     version: 'test',
@@ -58,8 +61,10 @@ describe('POST /capture', () => {
       store,
       visionAI: VisionAI.createNull({ analysis: sampleAnalysis }),
       chatAI: ChatAI.createNull({ responses: ['x'] }),
+      obsidianWriter: ObsidianWriter.createNull(),
       visionPrompt: 'p',
       chatPersonaPrompt: 'p',
+      vaultPath: '/tmp/vault',
       captureFolder: 'GotIt!',
       dataDir: '/tmp/data',
       version: 'test',
@@ -97,8 +102,10 @@ describe('POST /capture', () => {
       store: store2,
       visionAI: VisionAI.createNull({ failure: new Error('vision down') }),
       chatAI: ChatAI.createNull({ responses: ['x'] }),
+      obsidianWriter: ObsidianWriter.createNull(),
       visionPrompt: 'p',
       chatPersonaPrompt: 'p',
+      vaultPath: '/tmp/vault',
       captureFolder: 'GotIt!',
       dataDir: '/tmp/data',
       version: 'test',

@@ -4,6 +4,7 @@ import { createApp } from '../app.js'
 import { Store } from '../infra/store.js'
 import { VisionAI } from '../infra/vision-ai.js'
 import { ChatAI } from '../infra/chat-ai.js'
+import { ObsidianWriter } from '../infra/obsidian-writer.js'
 
 function setup(chatResponse = 'reply') {
   const store = Store.createNull()
@@ -15,8 +16,10 @@ function setup(chatResponse = 'reply') {
     store,
     visionAI: VisionAI.createNull(),
     chatAI: ChatAI.createNull({ responses: [chatResponse] }),
+    obsidianWriter: ObsidianWriter.createNull(),
     visionPrompt: 'p',
     chatPersonaPrompt: 'persona',
+    vaultPath: '/tmp/vault',
     captureFolder: 'GotIt!',
     dataDir: '/tmp/data',
     version: 'test',

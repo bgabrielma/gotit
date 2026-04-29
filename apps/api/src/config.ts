@@ -6,6 +6,7 @@ const ConfigSchema = z.object({
   GOTIT_CHAT_MODEL: z.string().default('claude-opus-4-7'),
   GOTIT_DB_PATH: z.string().default('./data/gotit.db'),
   GOTIT_DATA_DIR: z.string().default('./data'),
+  GOTIT_VAULT_PATH: z.string().default(''),
   PORT: z.coerce.number().int().positive().default(3000),
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
 })
@@ -16,6 +17,7 @@ export type Config = {
   chatModel: string
   dbPath: string
   dataDir: string
+  vaultPath: string
   port: number
   logLevel: 'error' | 'warn' | 'info' | 'debug'
 }
@@ -28,6 +30,7 @@ export function loadConfig(env: NodeJS.ProcessEnv | Record<string, string | unde
     chatModel: parsed.GOTIT_CHAT_MODEL,
     dbPath: parsed.GOTIT_DB_PATH,
     dataDir: parsed.GOTIT_DATA_DIR,
+    vaultPath: parsed.GOTIT_VAULT_PATH,
     port: parsed.PORT,
     logLevel: parsed.LOG_LEVEL,
   }
