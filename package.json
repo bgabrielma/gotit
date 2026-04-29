@@ -1,0 +1,36 @@
+{
+  "name": "got-it",
+  "version": "0.0.1",
+  "private": true,
+  "packageManager": "pnpm@10.12.4",
+  "engines": {
+    "node": "22.16.0"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "purity-check": "node scripts/purity-check.mjs",
+    "validate": "pnpm typecheck && pnpm lint && pnpm test && pnpm purity-check",
+    "dev": "pnpm --filter @got-it/api dev",
+    "docs:build": "mmdc -i docs/architecture.mmd -o docs/architecture.svg",
+    "docs:preview": "live-server docs --port=3333",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^11",
+    "@typescript-eslint/eslint-plugin": "^8",
+    "@typescript-eslint/parser": "^8",
+    "eslint": "^9",
+    "husky": "^9",
+    "lint-staged": "^15",
+    "live-server": "^1.2.2",
+    "prettier": "^3",
+    "typescript": "^5.6",
+    "vitest": "^2"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": ["eslint --fix", "prettier --write"],
+    "*.md": ["prettier --write"]
+  }
+}
