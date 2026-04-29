@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import request from 'supertest'
-import { createApp } from '../app.js'
-import { Store } from '../infra/store.js'
-import { VisionAI } from '../infra/vision-ai.js'
-import { ChatAI } from '../infra/chat-ai.js'
-import { ObsidianWriter } from '../infra/obsidian-writer.js'
+import { createApp } from '../../../app.js'
+import { Store } from '../../../infra/store.js'
+import { VisionAI } from '../../../infra/vision-ai.js'
+import { ChatAI } from '../../../infra/chat-ai.js'
+import { ObsidianWriter } from '../../../infra/obsidian-writer.js'
 
 function setup(chatResponse = 'reply') {
   const store = Store.createNull()

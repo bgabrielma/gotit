@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ObsidianWriter } from './obsidian-writer.js'
+import { ObsidianWriter } from '../../../infra/obsidian-writer.js'
 
 describe('ObsidianWriter (Nullable)', () => {
   it('records writes for inspection', async () => {

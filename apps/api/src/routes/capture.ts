@@ -4,7 +4,7 @@ import { Router } from 'express'
 import multer from 'multer'
 import { v4 as uuid } from 'uuid'
 import { CaptureSourceSchema } from '@got-it/shared'
-import { buildChatRequest } from '@got-it/core'
+import { buildChatRequest, extractUrls } from '@got-it/core'
 import type { Message } from '@got-it/shared'
 import type { AppDeps } from '../app.js'
 import { deviceAuth } from '../middleware/auth.js'
@@ -40,6 +40,13 @@ export function captureRouter(deps: AppDeps): Router {
       res.status(502).json({ error: msg })
       return
     }
+    const refinedUrls = new Map(analysis.urls.map((url) => [url.href, url] as const))
+    for (const href of extractUrls(analysis.raw_text)) {
+      if (!refinedUrls.has(href)) {
+        refinedUrls.set(href, { href })
+      }
+    }
+    analysis = { ...analysis, urls: [...refinedUrls.values()] }
 
     const imageRef = `${uuid()}.png`
     const imagesDir = join(deps.dataDir, 'images')

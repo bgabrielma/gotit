@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import request from 'supertest'
-import { createApp } from '../app.js'
-import { Store } from '../infra/store.js'
-import { VisionAI } from '../infra/vision-ai.js'
-import { ChatAI } from '../infra/chat-ai.js'
-import { ObsidianWriter } from '../infra/obsidian-writer.js'
+import { createApp } from '../../../app.js'
+import { Store } from '../../../infra/store.js'
+import { VisionAI } from '../../../infra/vision-ai.js'
+import { ChatAI } from '../../../infra/chat-ai.js'
+import { ObsidianWriter } from '../../../infra/obsidian-writer.js'
 
 const sampleAnalysis = {
   raw_text: 'README for cool-lib',
@@ -116,5 +116,49 @@ describe('POST /capture', () => {
       .field('source', 'keybind')
       .attach('image', Buffer.from('x'), 'a.png')
     expect(res.status).toBe(502)
+  })
+
+  it('enriches analysis urls from raw_text when model urls are empty', async () => {
+    const { app, token } = setup({
+      visionAnalysis: {
+        ...sampleAnalysis,
+        raw_text: 'Landing page at google.com and https://docs.example.org.',
+        urls: [],
+      },
+    })
+
+    const res = await request(app)
+      .post('/capture')
+      .set('Authorization', `Bearer ${token}`)
+      .field('source', 'keybind')
+      .attach('image', Buffer.from('x'), 'a.png')
+
+    expect(res.status).toBe(201)
+    expect(res.body.analysis.urls).toEqual([
+      { href: 'https://google.com' },
+      { href: 'https://docs.example.org' },
+    ])
+  })
+
+  it('merges model urls with extracted raw_text urls without duplicates', async () => {
+    const { app, token } = setup({
+      visionAnalysis: {
+        ...sampleAnalysis,
+        raw_text: 'Seen on google.com and docs.example.org/reference.',
+        urls: [{ href: 'https://google.com' }],
+      },
+    })
+
+    const res = await request(app)
+      .post('/capture')
+      .set('Authorization', `Bearer ${token}`)
+      .field('source', 'keybind')
+      .attach('image', Buffer.from('x'), 'a.png')
+
+    expect(res.status).toBe(201)
+    expect(res.body.analysis.urls).toEqual([
+      { href: 'https://google.com' },
+      { href: 'https://docs.example.org/reference' },
+    ])
   })
 })

@@ -26,4 +26,10 @@ module.exports = [
       'no-console': ['error', { allow: ['warn', 'error'] }],
     },
   },
+  {
+    files: ['apps/api/src/**/__tests__/**/*.live.test.ts'],
+    rules: {
+      'no-console': ['error', { allow: ['debug', 'warn', 'error'] }],
+    },
+  },
 ]

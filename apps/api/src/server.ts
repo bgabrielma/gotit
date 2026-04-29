@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 import { createApp } from './app.js'
 import { loadConfig } from './config.js'
 import { ChatAI } from './infra/chat-ai.js'
+import { LLMConnectorConfig } from './infra/llm-connector-config.js'
 import { ObsidianWriter } from './infra/obsidian-writer.js'
 import { Store } from './infra/store.js'
 import { VisionAI } from './infra/vision-ai.js'
@@ -19,11 +20,12 @@ const store = Store.create({
   dbPath: cfg.dbPath,
   migrationsDir: resolve('apps/api/migrations'),
 })
+const llm = LLMConnectorConfig.fromConfig(cfg)
 
 const app = createApp({
   store,
-  visionAI: VisionAI.create({ apiKey: cfg.anthropicApiKey, model: cfg.visionModel }),
-  chatAI: ChatAI.create({ apiKey: cfg.anthropicApiKey, model: cfg.chatModel }),
+  visionAI: VisionAI.create(llm),
+  chatAI: ChatAI.create(llm),
   obsidianWriter: ObsidianWriter.create(),
   visionPrompt: DEFAULT_VISION_PROMPT,
   chatPersonaPrompt: DEFAULT_CHAT_PROMPT,

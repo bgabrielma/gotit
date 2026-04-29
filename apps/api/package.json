@@ -8,16 +8,19 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "vitest run"
+    "test": "pnpm run test:unit && pnpm run test:integration",
+    "test:unit": "vitest run src/__tests__/unit",
+    "test:integration": "vitest run src/__tests__/integration --exclude src/__tests__/integration/llm.live.test.ts",
+    "test:live": "DOTENV_CONFIG_PATH=../../.env node -r dotenv/config ../../node_modules/vitest/vitest.mjs run src/__tests__/integration/llm.live.test.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.30",
     "@got-it/core": "workspace:*",
     "@got-it/shared": "workspace:*",
     "better-sqlite3": "^11",
     "dotenv": "^16",
     "express": "^4",
     "multer": "^1",
+    "openai": "^6.35.0",
     "uuid": "^10",
     "zod": "^3.23"
   },

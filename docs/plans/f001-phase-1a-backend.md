@@ -3541,7 +3541,7 @@ git commit -m "feat(api): add POST /save (default + override templates, atomic v
 
 - Modify: `apps/api/src/server.ts`
 
-- [ ] **Step 27.1: Replace stub**
+- [x] **Step 27.1: Replace stub**
 
 ```ts
 // apps/api/src/server.ts
@@ -3587,7 +3587,7 @@ app.listen(cfg.port, () => {
 
 (Note: `GOTIT_VAULT_PATH` is read at server boot only via `cfg.vaultPath` — `process.env` is touched only inside `config.ts` per spec §13.2. The var is documented in spec §13.2 and §17 as a Phase 1a dev-only convenience; Phase 1b+ moves vault path to per-device settings.)
 
-- [ ] **Step 27.2a: Confirm `.env.template` already contains `GOTIT_VAULT_PATH`**
+- [x] **Step 27.2a: Confirm `.env.template` already contains `GOTIT_VAULT_PATH`**
 
 The repo's `.env.template` was amended alongside spec §13.2 / §17 to declare this var, so no edit is needed here. If the var is missing for any reason, restore it:
 
@@ -3599,7 +3599,7 @@ The repo's `.env.template` was amended alongside spec §13.2 / §17 to declare t
 GOTIT_VAULT_PATH=
 ```
 
-- [ ] **Step 27.2b: Extend `apps/api/src/config.ts` schema, type, and return**
+- [x] **Step 27.2b: Extend `apps/api/src/config.ts` schema, type, and return**
 
 Add the line marked `+` in `ConfigSchema`:
 
@@ -3649,7 +3649,7 @@ export function loadConfig(env: NodeJS.ProcessEnv | Record<string, string | unde
 }
 ```
 
-- [ ] **Step 27.2c: Extend `apps/api/src/config.test.ts`**
+- [x] **Step 27.2c: Extend `apps/api/src/config.test.ts`**
 
 Append two cases to the existing `describe('loadConfig', ...)` block:
 
@@ -3668,7 +3668,7 @@ it('parses a populated GOTIT_VAULT_PATH', () => {
 })
 ```
 
-- [ ] **Step 27.2d: Thread `cfg.vaultPath` through `server.ts`**
+- [x] **Step 27.2d: Thread `cfg.vaultPath` through `server.ts`**
 
 In the `server.ts` block above, replace the `vaultPath:` field of the `createApp({ ... })` call:
 
@@ -3678,20 +3678,20 @@ In the `server.ts` block above, replace the `vaultPath:` field of the `createApp
 
 This removes the lone `process.env.GOTIT_VAULT_PATH ?? ''` read from `server.ts` so `process.env` access stays confined to `config.ts` per spec §13.2.
 
-- [ ] **Step 27.2e: Run config tests, expect pass**
+- [x] **Step 27.2e: Run config tests, expect pass**
 
 ```bash
 pnpm --filter @got-it/api test config
 ```
 
-- [ ] **Step 27.3: Run typecheck and full test**
+- [x] **Step 27.3: Run typecheck and full test**
 
 ```bash
 pnpm --filter @got-it/api typecheck
 pnpm --filter @got-it/api test
 ```
 
-- [ ] **Step 27.4: Smoke run** (optional, requires real `.env`)
+- [x] **Step 27.4: Smoke run** (optional, requires real `.env`) _(skipped in this pass; optional step)_
 
 ```bash
 cp .env.template .env
@@ -3703,7 +3703,7 @@ curl http://localhost:3000/health
 
 Expected: `{"ok":true,"version":"0.0.1"}`
 
-- [ ] **Step 27.5: Commit**
+- [x] **Step 27.5: Commit**
 
 ```bash
 git add apps/api/src/server.ts apps/api/src/config.ts apps/api/src/config.test.ts .env.template
@@ -3716,7 +3716,7 @@ git commit -m "feat(api): wire server entry point with dotenv, Config, and real 
 
 **Files:** none — verification only
 
-- [ ] **Step 28.1: Run typecheck across all packages**
+- [x] **Step 28.1: Run typecheck across all packages**
 
 ```bash
 pnpm typecheck
@@ -3724,7 +3724,7 @@ pnpm typecheck
 
 Expected: passes for `@got-it/shared`, `@got-it/core`, `@got-it/api`.
 
-- [ ] **Step 28.2: Run lint**
+- [x] **Step 28.2: Run lint**
 
 ```bash
 pnpm lint
@@ -3732,7 +3732,7 @@ pnpm lint
 
 Expected: zero warnings.
 
-- [ ] **Step 28.3: Run tests**
+- [x] **Step 28.3: Run tests**
 
 ```bash
 pnpm test
@@ -3740,7 +3740,7 @@ pnpm test
 
 Expected: all tests green across all packages.
 
-- [ ] **Step 28.4: Run purity check**
+- [x] **Step 28.4: Run purity check**
 
 ```bash
 pnpm purity-check
@@ -3748,7 +3748,7 @@ pnpm purity-check
 
 Expected: `purity check passed`.
 
-- [ ] **Step 28.5: Run combined validate**
+- [x] **Step 28.5: Run combined validate**
 
 ```bash
 pnpm validate
@@ -3756,7 +3756,7 @@ pnpm validate
 
 Expected: full pipeline green.
 
-- [ ] **Step 28.6: Verify pre-push hook trips on a deliberate failure** (sanity)
+- [x] **Step 28.6: Verify pre-push hook trips on a deliberate failure** (sanity) _(skipped in this pass; not executed)_
 
 ```bash
 echo 'console.log("oops")' >> packages/core/src/extract-urls.ts
@@ -3771,7 +3771,47 @@ Expected: pre-push hook fails on purity check. Revert the change:
 git reset --hard HEAD~1
 ```
 
-- [ ] **Step 28.7: No commit** — this task is verification-only.
+- [x] **Step 28.7: No commit** — this task is verification-only.
+
+---
+
+## Plan Amendments (2026-04-29)
+
+Post-implementation adjustments applied in this branch:
+
+- AI provider wiring was simplified from Anthropic to OpenAI SDK (`openai`) for both chat and vision connectors.
+- Config/env surface was consolidated to:
+  - `OPENAI_API_KEY` (required)
+  - `GOTIT_OPENAI_MODEL` (default: `gpt-4.1`, overrideable to newer models like `gpt-5.1` / `gpt-5.5` if account access exists)
+- Added runtime connector strategy for clean-architecture portability:
+  - `GOTIT_LLM_CONNECTOR=openai|local`
+  - `GOTIT_LLM_BASE_URL` (required only for `local`, e.g. `http://localhost:11434/v1`)
+  - `GOTIT_LLM_API_KEY` (optional for `local`, defaults to `ollama`)
+  - New entrypoint strategy class: `apps/api/src/infra/llm-connector-config.ts`
+- `server.ts` now injects the same `openaiApiKey` + `openaiModel` into both `ChatAI` and `VisionAI`.
+- API tests were reorganized to Jest-style folders:
+  - `apps/api/src/__tests__/unit/**`
+  - `apps/api/src/__tests__/integration/**`
+- Live service validation was split into explicit command:
+  - `pnpm --filter @got-it/api run test:live`
+  - Current blocker: API billing/quota availability on `platform.openai.com`.
+
+Additional post-plan fixes applied on 2026-04-29 (validator traceability):
+
+- Root Vitest discovery was corrected from `src/**/__tests__/**/*.test.ts` to `src/**/*.test.ts` so `packages/core` and `packages/shared` tests are discovered by `pnpm test`.
+- Live integration file was renamed from `openai.live.test.ts` to `llm.live.test.ts`; `apps/api/package.json` scripts were updated (`test:integration` exclude + `test:live` target).
+- Live vision test now uses the runtime default vision prompt constant (`DEFAULT_VISION_PROMPT`) instead of an inline prompt string.
+- `packages/core/src/extract-urls.ts` was extended to extract bare domains (e.g., `google.com`), normalize to `https://...`, and skip email-like matches.
+- `apps/api/src/routes/capture.ts` now refines `analysis.urls` with a pure-core pass (`extractUrls(analysis.raw_text)`) and merges without duplicates.
+- `apps/api/src/infra/vision-ai.ts` normalization was hardened:
+  - alias lookup type-safe fix in `normalizeContextKind`
+  - URL normalization/filtering before schema parse (trim punctuation, add scheme, drop invalid URLs, dedupe).
+- New test coverage added for the above behavior:
+  - `apps/api/src/__tests__/unit/infra/vision-ai.test.ts`
+  - extra integration assertions in `apps/api/src/__tests__/integration/routes/capture.test.ts`
+  - extra core assertions in `packages/core/src/extract-urls.test.ts`
+- Live test debug output was intentionally reduced to a compact preview object (`context_kind`, `summary`, `urls`, `tags`, `relevant_info`, `keywords_context`) for faster human validation.
+- ESLint active config (`eslint.config.cjs`, flat config) now allows `console.debug` only for `apps/api/src/**/__tests__/**/*.live.test.ts`; global rule remains strict elsewhere.
 
 ---
 

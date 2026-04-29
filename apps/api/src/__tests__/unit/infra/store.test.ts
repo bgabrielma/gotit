@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from 'vitest'
-import { Store } from './store.js'
+import { Store } from '../../../infra/store.js'
 import type { Message } from '@got-it/shared'
 
 describe('Store (Nullable)', () => {

@@ -23,4 +23,11 @@ describe('extractUrls', () => {
   it('ignores ftp:// and other non-http schemes', () => {
     expect(extractUrls('grab ftp://files/x and https://ok.com')).toEqual(['https://ok.com'])
   })
+
+  it('extracts bare domains and normalizes them to https URLs', () => {
+    expect(extractUrls('Open google.com and docs.example.org/path.')).toEqual([
+      'https://google.com',
+      'https://docs.example.org/path',
+    ])
+  })
 })

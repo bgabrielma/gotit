@@ -1,4 +1,5 @@
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
+import type { EasyInputMessage, ResponseInput } from 'openai/resources/responses/responses'
 
 export type ChatTurn = { role: 'user' | 'assistant'; content: string }
 export type ChatCompleteArgs = { system: string; messages: ChatTurn[] }
@@ -15,8 +16,8 @@ export type NullableChatConfig = {
 export class ChatAI {
   private constructor(private readonly backend: ChatBackend) {}
 
-  static create(args: { apiKey: string; model: string }): ChatAI {
-    const backend = new AnthropicChatBackend(args.apiKey, args.model)
+  static create(args: { apiKey: string; model: string; baseURL?: string }): ChatAI {
+    const backend = new OpenAIChatBackend(args.apiKey, args.model, args.baseURL)
     return new ChatAI(backend)
   }
 
@@ -45,26 +46,72 @@ class StubChatBackend implements ChatBackend {
   }
 }
 
-class AnthropicChatBackend implements ChatBackend {
-  private readonly client: Anthropic
+class OpenAIChatBackend implements ChatBackend {
+  private readonly client: OpenAI
   constructor(
-    apiKey: string,
-    private readonly model: string
+    private readonly apiKey: string,
+    private readonly model: string,
+    private readonly baseURL?: string
   ) {
-    this.client = new Anthropic({ apiKey })
+    this.client = new OpenAI({ apiKey: this.apiKey, baseURL: this.baseURL })
   }
 
   async complete({ system, messages }: ChatCompleteArgs): Promise<string> {
-    const resp = await this.client.messages.create({
+    const conversationItems: EasyInputMessage[] = messages.map(
+      (message): EasyInputMessage => ({
+        role: message.role,
+        content: [{ type: 'input_text', text: message.content }],
+      })
+    )
+
+    const input: ResponseInput = [
+      { role: 'developer', content: [{ type: 'input_text', text: system }] },
+      ...conversationItems,
+    ]
+
+    const resp = await this.client.responses.create({
       model: this.model,
-      max_tokens: 1024,
-      system,
-      messages: messages.map((m) => ({ role: m.role, content: m.content })),
+      input,
     })
-    const block = resp.content[0]
-    if (!block || block.type !== 'text') {
-      throw new Error('ChatAI: no text block')
+
+    const outputText = extractOutputText(resp)
+    if (!outputText) {
+      throw new Error('ChatAI: no text output')
     }
-    return block.text
+    return outputText
   }
+}
+
+function extractOutputText(payload: unknown): string | null {
+  if (!payload || typeof payload !== 'object') {
+    return null
+  }
+  const direct = (payload as { output_text?: unknown }).output_text
+  if (typeof direct === 'string' && direct.length > 0) {
+    return direct
+  }
+  const output = (payload as { output?: unknown }).output
+  if (!Array.isArray(output)) {
+    return null
+  }
+  for (const item of output) {
+    if (!item || typeof item !== 'object') {
+      continue
+    }
+    const content = (item as { content?: unknown }).content
+    if (!Array.isArray(content)) {
+      continue
+    }
+    for (const part of content) {
+      if (!part || typeof part !== 'object') {
+        continue
+      }
+      const type = (part as { type?: unknown }).type
+      const text = (part as { text?: unknown }).text
+      if (type === 'output_text' && typeof text === 'string' && text.length > 0) {
+        return text
+      }
+    }
+  }
+  return null
 }
