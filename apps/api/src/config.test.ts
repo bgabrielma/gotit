@@ -37,4 +37,17 @@ describe('loadConfig', () => {
   it('throws on invalid LOG_LEVEL', () => {
     expect(() => loadConfig({ ANTHROPIC_API_KEY: 'sk', LOG_LEVEL: 'shout' })).toThrow()
   })
+
+  it('defaults vaultPath to empty string when GOTIT_VAULT_PATH is unset', () => {
+    const cfg = loadConfig({ ANTHROPIC_API_KEY: 'sk-test' })
+    expect(cfg.vaultPath).toBe('')
+  })
+
+  it('parses a populated GOTIT_VAULT_PATH', () => {
+    const cfg = loadConfig({
+      ANTHROPIC_API_KEY: 'sk-test',
+      GOTIT_VAULT_PATH: '/Users/me/Vault',
+    })
+    expect(cfg.vaultPath).toBe('/Users/me/Vault')
+  })
 })
