@@ -3,6 +3,7 @@ import {
   CaptureRequestSchema,
   ChatRequestSchema,
   SaveRequestSchema,
+  SaveDraftResponseSchema,
   AnalysisResultSchema,
 } from './api.js'
 
@@ -50,5 +51,16 @@ describe('SaveRequestSchema', () => {
     expect(SaveRequestSchema.parse({ instruction: 'as code' })).toEqual({
       instruction: 'as code',
     })
+  })
+})
+
+describe('SaveDraftResponseSchema', () => {
+  it('requires path, markdown, and save record id', () => {
+    const parsed = SaveDraftResponseSchema.parse({
+      vault_relative_path: 'GotIt!/2026-04-29-sample.md',
+      markdown: '# sample',
+      save_record_id: 'msg_123',
+    })
+    expect(parsed.vault_relative_path).toContain('GotIt!/')
   })
 })

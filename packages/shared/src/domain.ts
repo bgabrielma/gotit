@@ -10,14 +10,14 @@ export type BBox = { x: number; y: number; w: number; h: number }
 
 export type ExtractedUrl = {
   href: string
-  anchor?: string
-  near_text?: string
+  anchor?: string | undefined
+  near_text?: string | undefined
 }
 
 export type Region = {
   kind: 'header' | 'paragraph' | 'code' | 'ui' | 'media'
   text: string
-  bbox?: BBox
+  bbox?: BBox | undefined
 }
 
 export type AnalysisResult = {
