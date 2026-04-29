@@ -18,6 +18,8 @@ module.exports = [
       '@typescript-eslint': tsPlugin,
     },
     rules: {
+      'no-undef': 'off',
+      'no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/ban-ts-comment': 'error',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],

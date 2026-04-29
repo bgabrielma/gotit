@@ -1,0 +1,54 @@
+---
+title: "GotIt! — System Architecture (Functional Core / Imperative Shell)"
+---
+
+graph TB
+    subgraph Client["Imperative Shell: macOS Client (Swift/SwiftUI)"]
+        direction TB
+        Triggers["Triggers<br/>Screenshot · Global Keybind"]
+        Capture["Capture Layer<br/>ScreenCaptureKit · AVAudioEngine"]
+        ChatPanel["Chat Panel (NSPanel)<br/>Text · Mic · Listen Mode"]
+        Stealth["Stealth Rendering<br/>sharingType = .none"]
+        Triggers --> Capture
+        Capture --> ChatPanel
+        ChatPanel --> Stealth
+    end
+
+    subgraph Shell["Imperative Shell: Backend API (Express/TypeScript)"]
+        direction TB
+        Routes["HTTP Routes<br/>Logic Sandwich: read → core → write"]
+        Infra["Infrastructure Wrappers (Nullables)<br/>VisionAI · FileWriter · AudioTranscriber"]
+        Routes --> Infra
+    end
+
+    subgraph Core["Functional Core: packages/core"]
+        direction TB
+        Extract["extractUrls()<br/>Pure: string → string[]"]
+        Format["formatObsidianEntry()<br/>Pure: Content × Template × Date → string"]
+        Analyze["analyzeContext()<br/>Pure: OCRResult → ContextSummary"]
+        Score["scoreContent()<br/>Pure: Content × Criteria → Score"]
+    end
+
+    subgraph Shared["packages/shared"]
+        Types["API Contracts<br/>Zod Schemas · Types · Constants"]
+    end
+
+    subgraph External["External Services"]
+        AI["AI Provider<br/>Vision · Whisper · LLM"]
+        Obsidian["Obsidian Vault<br/>Markdown · Frontmatter"]
+    end
+
+    Client -- "image, audio, text" --> Shell
+    Shell -- "analysis, context, links" --> Client
+    Shell -- "calls pure functions" --> Core
+    Core -- "returns data" --> Shell
+    Shell -- "reads types" --> Shared
+    Core -- "reads types" --> Shared
+    Shell -- "API calls (Nullables)" --> AI
+    Shell -- "file write (Nullables)" --> Obsidian
+
+    style Client fill:#1e293b,stroke:#60a5fa,color:#e2e8f0
+    style Shell fill:#1e293b,stroke:#a78bfa,color:#e2e8f0
+    style Core fill:#1e293b,stroke:#f59e0b,color:#e2e8f0
+    style Shared fill:#1e293b,stroke:#94a3b8,color:#e2e8f0
+    style External fill:#1e293b,stroke:#34d399,color:#e2e8f0

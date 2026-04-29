@@ -1,0 +1,8 @@
+node_modules/
+.superpowers/
+dist/
+build/
+.DS_Store
+*.xcuserdata
+.env
+.env.local
