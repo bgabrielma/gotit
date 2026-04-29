@@ -10,8 +10,9 @@
     "lint": "eslint src",
     "test": "pnpm run test:unit && pnpm run test:integration",
     "test:unit": "vitest run src/__tests__/unit",
-    "test:integration": "vitest run src/__tests__/integration --exclude src/__tests__/integration/llm.live.test.ts",
-    "test:live": "DOTENV_CONFIG_PATH=../../.env node -r dotenv/config ../../node_modules/vitest/vitest.mjs run src/__tests__/integration/llm.live.test.ts"
+    "test:integration": "vitest run src/__tests__/integration --exclude src/__tests__/integration/llm.live.test.ts --exclude src/__tests__/integration/obsidian.live.test.ts",
+    "test:live": "DOTENV_CONFIG_PATH=../../.env node -r dotenv/config ../../node_modules/vitest/vitest.mjs run src/__tests__/integration/llm.live.test.ts",
+    "test:live-obsidian": "vitest run src/__tests__/integration/obsidian.live.test.ts"
   },
   "dependencies": {
     "@got-it/core": "workspace:*",

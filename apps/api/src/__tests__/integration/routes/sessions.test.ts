@@ -6,11 +6,9 @@ import { VisionAI } from '../../../infra/vision-ai.js'
 import { ChatAI } from '../../../infra/chat-ai.js'
 import { ObsidianWriter } from '../../../infra/obsidian-writer.js'
 
-function setup() {
-  const store = Store.createNull()
-  const { token } = store.registerDevice({ install_id: 'inst-1' })
-  const app = createApp({
-    store,
+function makeApp() {
+  return createApp({
+    store: Store.createNull(),
     visionAI: VisionAI.createNull(),
     chatAI: ChatAI.createNull(),
     obsidianWriter: ObsidianWriter.createNull(),
@@ -21,12 +19,18 @@ function setup() {
     dataDir: '/tmp/data',
     version: 'test',
   })
-  return { app, store, token }
+}
+
+async function setup() {
+  const app = makeApp()
+  const deviceRes = await request(app).post('/device').send({ install_id: 'inst-1' })
+  const token = deviceRes.body.token as string
+  return { app, token }
 }
 
 describe('sessions routes', () => {
   it('POST /sessions creates and activates a new session', async () => {
-    const { app, token } = setup()
+    const { app, token } = await setup()
     const res = await request(app).post('/sessions').set('Authorization', `Bearer ${token}`)
     expect(res.status).toBe(201)
     expect(res.body.session_id).toBeTruthy()
@@ -34,7 +38,7 @@ describe('sessions routes', () => {
   })
 
   it('GET /sessions/active returns the active session and tail', async () => {
-    const { app, token } = setup()
+    const { app, token } = await setup()
     await request(app).post('/sessions').set('Authorization', `Bearer ${token}`)
     const res = await request(app).get('/sessions/active').set('Authorization', `Bearer ${token}`)
     expect(res.status).toBe(200)
@@ -43,7 +47,7 @@ describe('sessions routes', () => {
   })
 
   it('POST /sessions/:id/activate sets the given session active', async () => {
-    const { app, token } = setup()
+    const { app, token } = await setup()
     const r1 = await request(app).post('/sessions').set('Authorization', `Bearer ${token}`)
     const sid1 = r1.body.session_id
     await request(app).post('/sessions').set('Authorization', `Bearer ${token}`)
@@ -55,7 +59,7 @@ describe('sessions routes', () => {
   })
 
   it('GET /sessions lists newest first', async () => {
-    const { app, token } = setup()
+    const { app, token } = await setup()
     await request(app).post('/sessions').set('Authorization', `Bearer ${token}`)
     await request(app).post('/sessions').set('Authorization', `Bearer ${token}`)
     const res = await request(app).get('/sessions').set('Authorization', `Bearer ${token}`)
@@ -65,7 +69,7 @@ describe('sessions routes', () => {
   })
 
   it('rejects unauthenticated requests', async () => {
-    const { app } = setup()
+    const { app } = await setup()
     const res = await request(app).get('/sessions/active')
     expect(res.status).toBe(401)
   })

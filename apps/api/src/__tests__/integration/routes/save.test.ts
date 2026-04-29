@@ -5,51 +5,23 @@ import { Store } from '../../../infra/store.js'
 import { VisionAI } from '../../../infra/vision-ai.js'
 import { ChatAI } from '../../../infra/chat-ai.js'
 import { ObsidianWriter } from '../../../infra/obsidian-writer.js'
-import type { Message } from '@got-it/shared'
 
-const captureMsg: Omit<
-  Extract<Message, { kind: 'screen_capture' }>,
-  'id' | 'session_id' | 'created_at'
-> = {
-  kind: 'screen_capture',
-  image_ref: 'r.png',
-  source: 'keybind',
-  analysis: {
-    raw_text: '',
-    urls: [{ href: 'https://example.com' }],
-    regions: [],
-    context_kind: 'browser_article',
-    summary: 'A page about A',
-  },
+const sampleAnalysis = {
+  raw_text: '',
+  urls: [{ href: 'https://example.com' }],
+  regions: [],
+  context_kind: 'browser_article' as const,
+  summary: 'A page about A',
 }
 
-function setupWithCapture(chatResponses: string[] = []) {
-  const store = Store.createNull()
-  const { token } = store.registerDevice({ install_id: 'i' })
-  const device = store.findDeviceByToken(token)!
-  const session = store.createSession({
-    device_id: device.id,
-    now: new Date('2026-04-28T15:42:00Z'),
-  })
-  store.setActiveSession({ device_id: device.id, session_id: session.id })
-  store.appendMessage({
-    ...captureMsg,
-    id: 'cap1',
-    session_id: session.id,
-    created_at: '2026-04-28T15:42:00Z',
-  })
-  store.appendMessage({
-    id: 'a1',
-    session_id: session.id,
-    kind: 'assistant',
-    text: 'Notes about the page.',
-    created_at: '2026-04-28T15:42:01Z',
-  })
-  const app = createApp({
-    store,
-    visionAI: VisionAI.createNull(),
-    chatAI: ChatAI.createNull({ responses: chatResponses }),
-    obsidianWriter: ObsidianWriter.createNull(),
+function makeApp(opts: { chatResponses?: string[]; writeFailure?: Error } = {}) {
+  return createApp({
+    store: Store.createNull(),
+    visionAI: VisionAI.createNull({ analysis: sampleAnalysis }),
+    chatAI: ChatAI.createNull({ responses: opts.chatResponses ?? ['Notes about the page.'] }),
+    obsidianWriter: opts.writeFailure
+      ? ObsidianWriter.createNull({ writeFailure: opts.writeFailure })
+      : ObsidianWriter.createNull(),
     visionPrompt: 'p',
     chatPersonaPrompt: 'p',
     vaultPath: '/tmp/vault',
@@ -57,12 +29,24 @@ function setupWithCapture(chatResponses: string[] = []) {
     dataDir: '/tmp/data',
     version: 'test',
   })
-  return { app, token, session }
+}
+
+async function setupWithCapture(opts: Parameters<typeof makeApp>[0] = {}) {
+  const app = makeApp(opts)
+  const deviceRes = await request(app).post('/device').send({ install_id: 'i' })
+  const token = deviceRes.body.token as string
+  await request(app).post('/sessions').set('Authorization', `Bearer ${token}`)
+  await request(app)
+    .post('/capture')
+    .set('Authorization', `Bearer ${token}`)
+    .field('source', 'keybind')
+    .attach('image', Buffer.from('fake-image-bytes'), 'screen.png')
+  return { app, token }
 }
 
 describe('POST /save', () => {
   it('writes the file to the vault and returns vault_path and save_record_id', async () => {
-    const { app, token } = setupWithCapture()
+    const { app, token } = await setupWithCapture()
     const res = await request(app).post('/save').set('Authorization', `Bearer ${token}`).send({})
     expect(res.status).toBe(201)
     expect(res.body.vault_path.startsWith('/tmp/vault/GotIt!/')).toBe(true)
@@ -71,7 +55,10 @@ describe('POST /save', () => {
   })
 
   it('uses override template when instruction supplied', async () => {
-    const { app, token } = setupWithCapture(['```\ncode body from AI\n```'])
+    // Two chat responses: first consumed by POST /capture, second by POST /save override
+    const { app, token } = await setupWithCapture({
+      chatResponses: ['Notes about the page.', '```\ncode body from AI\n```'],
+    })
     const res = await request(app)
       .post('/save')
       .set('Authorization', `Bearer ${token}`)
@@ -82,50 +69,17 @@ describe('POST /save', () => {
   })
 
   it('returns 422 when active session has no capture yet', async () => {
-    const store = Store.createNull()
-    const { token } = store.registerDevice({ install_id: 'i' })
-    const device = store.findDeviceByToken(token)!
-    const session = store.createSession({ device_id: device.id, now: new Date() })
-    store.setActiveSession({ device_id: device.id, session_id: session.id })
-    const app = createApp({
-      store,
-      visionAI: VisionAI.createNull(),
-      chatAI: ChatAI.createNull(),
-      obsidianWriter: ObsidianWriter.createNull(),
-      visionPrompt: 'p',
-      chatPersonaPrompt: 'p',
-      vaultPath: '/tmp/vault',
-      captureFolder: 'GotIt!',
-      dataDir: '/tmp/data',
-      version: 'test',
-    })
+    const app = makeApp()
+    const deviceRes = await request(app).post('/device').send({ install_id: 'i' })
+    const token = deviceRes.body.token as string
+    await request(app).post('/sessions').set('Authorization', `Bearer ${token}`)
     const res = await request(app).post('/save').set('Authorization', `Bearer ${token}`).send({})
     expect(res.status).toBe(422)
   })
 
   it('returns 422 when vault write fails', async () => {
-    const store = Store.createNull()
-    const { token } = store.registerDevice({ install_id: 'i' })
-    const device = store.findDeviceByToken(token)!
-    const session = store.createSession({ device_id: device.id, now: new Date() })
-    store.setActiveSession({ device_id: device.id, session_id: session.id })
-    store.appendMessage({
-      ...captureMsg,
-      id: 'cap2',
-      session_id: session.id,
-      created_at: new Date().toISOString(),
-    })
-    const app = createApp({
-      store,
-      visionAI: VisionAI.createNull(),
-      chatAI: ChatAI.createNull(),
-      obsidianWriter: ObsidianWriter.createNull({ writeFailure: new Error('ENOSPC') }),
-      visionPrompt: 'p',
-      chatPersonaPrompt: 'p',
-      vaultPath: '/tmp/vault',
-      captureFolder: 'GotIt!',
-      dataDir: '/tmp/data',
-      version: 'test',
+    const { app, token } = await setupWithCapture({
+      writeFailure: new Error('ENOSPC'),
     })
     const res = await request(app).post('/save').set('Authorization', `Bearer ${token}`).send({})
     expect(res.status).toBe(422)

@@ -6,14 +6,9 @@ import { VisionAI } from '../../../infra/vision-ai.js'
 import { ChatAI } from '../../../infra/chat-ai.js'
 import { ObsidianWriter } from '../../../infra/obsidian-writer.js'
 
-function setup(chatResponse = 'reply') {
-  const store = Store.createNull()
-  const { token } = store.registerDevice({ install_id: 'i' })
-  const device = store.findDeviceByToken(token)!
-  const session = store.createSession({ device_id: device.id, now: new Date() })
-  store.setActiveSession({ device_id: device.id, session_id: session.id })
-  const app = createApp({
-    store,
+function makeApp(chatResponse = 'reply') {
+  return createApp({
+    store: Store.createNull(),
     visionAI: VisionAI.createNull(),
     chatAI: ChatAI.createNull({ responses: [chatResponse] }),
     obsidianWriter: ObsidianWriter.createNull(),
@@ -24,12 +19,19 @@ function setup(chatResponse = 'reply') {
     dataDir: '/tmp/data',
     version: 'test',
   })
-  return { app, token, store, device, session }
+}
+
+async function setup(chatResponse = 'reply') {
+  const app = makeApp(chatResponse)
+  const deviceRes = await request(app).post('/device').send({ install_id: 'i' })
+  const token = deviceRes.body.token as string
+  await request(app).post('/sessions').set('Authorization', `Bearer ${token}`)
+  return { app, token }
 }
 
 describe('POST /chat', () => {
   it('appends user message, returns assistant reply', async () => {
-    const { app, token } = setup('hello back')
+    const { app, token } = await setup('hello back')
     const res = await request(app)
       .post('/chat')
       .set('Authorization', `Bearer ${token}`)
@@ -39,7 +41,7 @@ describe('POST /chat', () => {
   })
 
   it('rejects empty text', async () => {
-    const { app, token } = setup()
+    const { app, token } = await setup()
     const res = await request(app)
       .post('/chat')
       .set('Authorization', `Bearer ${token}`)
@@ -48,7 +50,7 @@ describe('POST /chat', () => {
   })
 
   it('rejects mic/listen sources in Phase 1a (deferred to 1b/1c)', async () => {
-    const { app, token } = setup()
+    const { app, token } = await setup()
     const res = await request(app)
       .post('/chat')
       .set('Authorization', `Bearer ${token}`)

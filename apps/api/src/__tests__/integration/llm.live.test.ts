@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { ChatAI } from '../../infra/chat-ai.js'
+import request from 'supertest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { createApp } from '../../app.js'
+import { Store } from '../../infra/store.js'
 import { VisionAI } from '../../infra/vision-ai.js'
+import { ChatAI } from '../../infra/chat-ai.js'
+import { ObsidianWriter } from '../../infra/obsidian-writer.js'
 import { loadConfig } from '../../config.js'
 import { LLMConnectorConfig } from '../../infra/llm-connector-config.js'
 import { DEFAULT_VISION_PROMPT } from '../../prompts/default-vision.js'
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 
 const canRunCloudLive =
   process.env.GOTIT_LLM_CONNECTOR === 'openai' &&
@@ -24,41 +28,53 @@ describeIfLiveReady('LLM live integration', () => {
   const llm = LLMConnectorConfig.fromConfig(cfg)
   const screenshotPath = resolve('src/__tests__/fixtures/screenshot-sample.png')
 
-  it('chat connector returns a non-empty response', async () => {
-    const chatAI = ChatAI.create(llm)
-    const response = await chatAI.complete({
-      system: 'Reply with one short sentence.',
-      messages: [{ role: 'user', content: 'Say hello from integration test.' }],
+  async function setup() {
+    const app = createApp({
+      store: Store.createNull(),
+      visionAI: VisionAI.create(llm),
+      chatAI: ChatAI.create(llm),
+      obsidianWriter: ObsidianWriter.createNull(),
+      visionPrompt: DEFAULT_VISION_PROMPT,
+      chatPersonaPrompt: 'You are a concise research assistant.',
+      vaultPath: '/tmp/gotit-llm-live',
+      captureFolder: 'GotIt!',
+      dataDir: '/tmp/gotit-llm-live-data',
+      version: 'live-test',
     })
-    console.debug('LLM live chat response:', response)
-    expect(typeof response).toBe('string')
-    expect(response.length).toBeGreaterThan(0)
+    const deviceRes = await request(app).post('/device').send({ install_id: 'llm-live-device' })
+    const token = deviceRes.body.token as string
+    await request(app).post('/sessions').set('Authorization', `Bearer ${token}`)
+    return { app, token }
+  }
+
+  it('chat route returns a non-empty assistant response', async () => {
+    const { app, token } = await setup()
+    const res = await request(app)
+      .post('/chat')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ source: 'text', text: 'Say hello from integration test.' })
+    expect(res.status).toBe(201)
+    console.debug('LLM live chat response:', res.body.assistant_message.text)
+    expect(typeof res.body.assistant_message.text).toBe('string')
+    expect(res.body.assistant_message.text.length).toBeGreaterThan(0)
   }, 120_000)
 
-  it('vision connector returns a schema-valid analysis response', async () => {
-    const visionAI = VisionAI.create(llm)
-    const png = readFileSync(screenshotPath)
-    let result
-
-    try {
-      result = await visionAI.analyze({
-        image: png,
-        prompt: DEFAULT_VISION_PROMPT,
-      })
-    } catch (error) {
-      console.error('LLM live vision error:', error)
-      throw error
-    }
-
+  it('capture route returns a schema-valid vision analysis', async () => {
+    const { app, token } = await setup()
+    const res = await request(app)
+      .post('/capture')
+      .set('Authorization', `Bearer ${token}`)
+      .field('source', 'keybind')
+      .attach('image', readFileSync(screenshotPath), 'screen.png')
+    expect(res.status).toBe(201)
     console.debug('LLM live vision response:', {
-      context_kind: result.context_kind,
-      summary: result.summary,
-      urls: result.urls,
-      regions: result.regions,
-      raw_text: result.raw_text,
+      context_kind: res.body.analysis.context_kind,
+      summary: res.body.analysis.summary,
+      urls: res.body.analysis.urls,
+      raw_text: res.body.analysis.raw_text,
     })
-    expect(result.context_kind).toBeDefined()
-    expect(Array.isArray(result.urls)).toBe(true)
-    expect(typeof result.summary).toBe('string')
+    expect(res.body.analysis.context_kind).toBeDefined()
+    expect(Array.isArray(res.body.analysis.urls)).toBe(true)
+    expect(typeof res.body.analysis.summary).toBe('string')
   }, 120_000)
 })
