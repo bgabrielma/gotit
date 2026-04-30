@@ -13,16 +13,16 @@
   - Phase 1a Plan B (macOS client): `docs/specs/f001-phase-1a-macos-client.md` ✓ — implementation plan pending (`docs/plans/f001-phase-1a-macos-client.md` to be written next)
   - Phase 1b (mic), 1c (Listen), 1d (history): not started
 
+- [ ] **F014** Postgres Storage Refactor (docker-compose) — Replace the SQLite `Store` infrastructure wrapper in `packages/api` with Postgres provisioned via Docker Compose for local development and single-host production deployment. Small, scoped refactor: swap the wrapper implementation, port the migration files (`packages/api/migrations/`) to Postgres dialect, add Compose deployment files, update `.env.template` (e.g., `GOTIT_DATABASE_URL`). No product behavior change. **Top priority before F013** — done before Obsidian Plugin Delivery to avoid migrating a Postgres-shaped dataset twice.
+  - Depends on: F001 Phase 1a Plan B (started)
+  - Spec: `docs/specs/f014-postgres-storage-refactor.md` ✓
+  - Introduces: `docker-compose.yml`, Postgres `Store` adapter (still behind same protocol), Postgres-dialect migrations, env var changes.
+
 ## Planned (Next Sprint)
 
-_F014 is the next feature once F001 Phase 1a Plan B implementation begins. See Backlog._
+_No feature queued. F014 is now in progress._
 
 ## Backlog (Prioritized)
-
-- [ ] **F014** Postgres Storage Refactor (docker-compose) — Replace the SQLite `Store` infrastructure wrapper in `packages/api` with Postgres provisioned via `docker-compose`. Small, scoped refactor: swap the wrapper implementation, port the migration files (`packages/api/migrations/`) to Postgres dialect, add a `docker-compose.yml` for local dev, update `.env.template` (e.g., `GOTIT_DATABASE_URL`). No product behavior change. **Top priority once F001 Phase 1a Plan B starts** — done before F013 to avoid migrating a Postgres-shaped dataset twice.
-  - Depends on: F001 Phase 1a Plan B (in progress)
-  - Spec: `docs/specs/f014-postgres-storage-refactor.md` _(pending)_
-  - Introduces: `docker-compose.yml`, Postgres `Store` adapter (still behind same protocol), Postgres-dialect migrations, env var changes.
 
 - [ ] **F013** Obsidian Plugin Delivery — Real Obsidian plugin (TypeScript, Obsidian plugin API) plus SSE delivery from the backend. Replaces the Phase 1a direct file-write path with a proper Vault API write. Unlocks cross-client reuse (F007) and proper indexing/sync. Phase 1a chooses file-write delivery as a deliberate stop-gap; F013 is the durable answer and is sequenced **after F014, ahead of F002**.
   - Depends on: F001, F014
