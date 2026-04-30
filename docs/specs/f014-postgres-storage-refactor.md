@@ -1,6 +1,6 @@
 # F014 - Postgres Storage Refactor
 
-> Status: Draft (pending user review)
+> Status: Approved
 > Owner: Brainstorming session 2026-04-30
 > Depends on: F001 Phase 1a Plan B started
 > Blocks: F013 Obsidian Plugin Delivery, F002 Advanced Obsidian Workflows
