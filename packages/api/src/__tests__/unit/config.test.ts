@@ -9,25 +9,29 @@ describe('loadConfig', () => {
       GOTIT_LLM_CONNECTOR: 'openai',
       GOTIT_LLM_BASE_URL: '',
       GOTIT_LLM_API_KEY: '',
-      GOTIT_DB_PATH: '/tmp/db.sqlite',
+      GOTIT_DATABASE_URL: 'postgres://gotit:gotit@localhost:5432/gotit',
       GOTIT_DATA_DIR: '/tmp/data',
+      GOTIT_VAULT_PATH: '/tmp/vault',
       PORT: '4000',
       LOG_LEVEL: 'debug',
     })
     expect(cfg.openaiApiKey).toBe('sk-test')
     expect(cfg.openaiModel).toBe('gpt-test')
     expect(cfg.llmConnector).toBe('openai')
+    expect(cfg.databaseUrl).toBe('postgres://gotit:gotit@localhost:5432/gotit')
+    expect(cfg.dataDir).toBe('/tmp/data')
+    expect(cfg.vaultPath).toBe('/tmp/vault')
     expect(cfg.port).toBe(4000)
     expect(cfg.logLevel).toBe('debug')
   })
 
-  it('applies defaults for optional vars', () => {
+  it('applies the default Postgres database URL', () => {
     const cfg = loadConfig({ OPENAI_API_KEY: 'sk-test' })
     expect(cfg.openaiModel).toBe('gpt-4.1')
     expect(cfg.llmConnector).toBe('openai')
     expect(cfg.llmBaseUrl).toBe('')
     expect(cfg.llmApiKey).toBe('')
-    expect(cfg.dbPath).toBe('./data/gotit.db')
+    expect(cfg.databaseUrl).toBe('postgres://gotit:gotit@localhost:5432/gotit')
     expect(cfg.dataDir).toBe('./data')
     expect(cfg.port).toBe(3000)
     expect(cfg.logLevel).toBe('info')

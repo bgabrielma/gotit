@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url'
 import { config as loadDotenv } from 'dotenv'
 import { z } from 'zod'
 
+const DEFAULT_DATABASE_URL = 'postgres://gotit:gotit@localhost:5432/gotit'
+
 const ConfigSchema = z
   .object({
     OPENAI_API_KEY: z.string().default(''),
@@ -11,7 +13,7 @@ const ConfigSchema = z
     GOTIT_LLM_CONNECTOR: z.enum(['openai', 'local', 'ollama', 'external']).default('openai'),
     GOTIT_LLM_BASE_URL: z.string().default(''),
     GOTIT_LLM_API_KEY: z.string().default(''),
-    GOTIT_DB_PATH: z.string().default('./data/gotit.db'),
+    GOTIT_DATABASE_URL: z.string().url().default(DEFAULT_DATABASE_URL),
     GOTIT_DATA_DIR: z.string().default('./data'),
     GOTIT_VAULT_PATH: z.string().default(''),
     PORT: z.coerce.number().int().positive().default(3000),
@@ -40,7 +42,7 @@ export type Config = {
   llmConnector: 'openai' | 'local' | 'ollama' | 'external'
   llmBaseUrl: string
   llmApiKey: string
-  dbPath: string
+  databaseUrl: string
   dataDir: string
   vaultPath: string
   port: number
@@ -65,7 +67,7 @@ export function loadConfig(env: NodeJS.ProcessEnv | Record<string, string | unde
     llmConnector: parsed.GOTIT_LLM_CONNECTOR,
     llmBaseUrl: parsed.GOTIT_LLM_BASE_URL,
     llmApiKey: parsed.GOTIT_LLM_API_KEY,
-    dbPath: parsed.GOTIT_DB_PATH,
+    databaseUrl: parsed.GOTIT_DATABASE_URL,
     dataDir: parsed.GOTIT_DATA_DIR,
     vaultPath: parsed.GOTIT_VAULT_PATH,
     port: parsed.PORT,

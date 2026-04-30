@@ -36,7 +36,7 @@
 - Modify: `packages/api/src/config.ts`
 - Modify: `.env.template`
 
-- [ ] **Step 1.1: Update config tests first**
+- [x] **Step 1.1: Update config tests first**
 
 Replace `GOTIT_DB_PATH` expectations with `GOTIT_DATABASE_URL`.
 
@@ -66,13 +66,13 @@ it('applies the default Postgres database URL', () => {
 })
 ```
 
-- [ ] **Step 1.2: Run config tests to verify failure**
+- [x] **Step 1.2: Run config tests to verify failure**
 
 Run: `pnpm --filter @got-it/api test:unit -- src/__tests__/unit/config.test.ts`
 
 Expected: FAIL because `databaseUrl` does not exist and `dbPath` is still returned.
 
-- [ ] **Step 1.3: Implement config rename**
+- [x] **Step 1.3: Implement config rename**
 
 Change `ConfigSchema` and `Config` in `packages/api/src/config.ts`.
 
@@ -95,7 +95,7 @@ const ConfigSchema = z.object({
 
 Return `databaseUrl: parsed.GOTIT_DATABASE_URL` and remove `dbPath`.
 
-- [ ] **Step 1.4: Update `.env.template` storage section**
+- [x] **Step 1.4: Update `.env.template` storage section**
 
 Replace the SQLite block with:
 
@@ -110,7 +110,7 @@ GOTIT_DATABASE_URL=postgres://gotit:gotit@postgres:5432/gotit
 # Postgres database or remove the Docker volume used by Compose.
 ```
 
-- [ ] **Step 1.5: Run config tests to verify pass**
+- [x] **Step 1.5: Run config tests to verify pass**
 
 Run: `pnpm --filter @got-it/api test:unit -- src/__tests__/unit/config.test.ts`
 
