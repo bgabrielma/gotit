@@ -1,8 +1,8 @@
-import Database from 'better-sqlite3'
-import { mkdirSync, readFileSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import { readdirSync, readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { Pool } from 'pg'
 import { v4 as uuid } from 'uuid'
-import type { Message, Session, DeviceId, SessionId } from '@got-it/shared'
+import type { DeviceId, Message, Session, SessionId } from '@got-it/shared'
 
 export type Device = {
   id: DeviceId
@@ -24,166 +24,54 @@ export interface StoreBackend {
   listMessages(args: { session_id: SessionId; limit: number }): Promise<Message[]>
 }
 
-export class Store {
-  private constructor(private readonly backend: StoreBackend) {}
+export class Store implements StoreBackend {
+  private constructor(private readonly pool: Pool) {}
 
-  static create(args: { databaseUrl: string; migrationsDir: string }): Store {
-    mkdirSync(dirname(resolve(args.databaseUrl)), { recursive: true })
-    const db = new Database(args.databaseUrl)
-    db.pragma('journal_mode = WAL')
-    db.pragma('foreign_keys = ON')
-    const sql = readFileSync(resolve(args.migrationsDir, '001_init.sql'), 'utf8')
-    db.exec(sql)
-    const backend = new SqliteBackend(db)
-    return new Store(backend)
+  static async create(args: { databaseUrl: string; migrationsDir: string }): Promise<Store> {
+    const pool = new Pool({ connectionString: args.databaseUrl })
+    await runMigrations(pool, args.migrationsDir)
+    return new Store(pool)
   }
 
-  static createNull(): Store {
-    const backend = new InMemoryBackend()
-    return new Store(backend)
+  async close(): Promise<void> {
+    await this.pool.end()
   }
-
-  async registerDevice(args: { install_id: string }) {
-    return this.backend.registerDevice(args)
-  }
-  async findDeviceByToken(token: string) {
-    return this.backend.findDeviceByToken(token)
-  }
-  async createSession(args: { device_id: DeviceId; now: Date }) {
-    return this.backend.createSession(args)
-  }
-  async setActiveSession(args: { device_id: DeviceId; session_id: SessionId }) {
-    return this.backend.setActiveSession(args)
-  }
-  async getActiveSession(device_id: DeviceId) {
-    return this.backend.getActiveSession(device_id)
-  }
-  async listSessions(args: { device_id: DeviceId; limit: number }) {
-    return this.backend.listSessions(args)
-  }
-  async getSession(session_id: SessionId) {
-    return this.backend.getSession(session_id)
-  }
-  async appendMessage(m: Message) {
-    return this.backend.appendMessage(m)
-  }
-  async listMessages(args: { session_id: SessionId; limit: number }) {
-    return this.backend.listMessages(args)
-  }
-}
-
-// ───── In-memory backend (production code, used by createNull) ─────
-class InMemoryBackend implements StoreBackend {
-  private devices = new Map<DeviceId, Device>()
-  private byToken = new Map<string, DeviceId>()
-  private sessions = new Map<SessionId, Session>()
-  private messages = new Map<SessionId, Message[]>()
 
   async registerDevice({ install_id }: { install_id: string }) {
-    for (const d of this.devices.values()) {
-      if (d.install_id === install_id) {
-        const result = { device_id: d.id, token: d.token }
-        return result
-      }
-    }
-    const id = uuid()
-    const token = uuid()
-    const device: Device = {
-      id,
-      install_id,
-      token,
-      active_session_id: null,
-      created_at: new Date().toISOString(),
-    }
-    this.devices.set(id, device)
-    this.byToken.set(token, id)
-    return { device_id: id, token }
-  }
-  async findDeviceByToken(token: string) {
-    const id = this.byToken.get(token)
-    return id ? (this.devices.get(id) ?? null) : null
-  }
-  async createSession({ device_id, now }: { device_id: DeviceId; now: Date }) {
-    const s: Session = {
-      id: uuid(),
-      device_id,
-      started_at: now.toISOString(),
-      ended_at: null,
-      title: null,
-    }
-    this.sessions.set(s.id, s)
-    return s
-  }
-  async setActiveSession({
-    device_id,
-    session_id,
-  }: {
-    device_id: DeviceId
-    session_id: SessionId
-  }) {
-    const d = this.devices.get(device_id)
-    if (d) d.active_session_id = session_id
-  }
-  async getActiveSession(device_id: DeviceId) {
-    const d = this.devices.get(device_id)
-    if (!d?.active_session_id) return null
-    return this.sessions.get(d.active_session_id) ?? null
-  }
-  async listSessions({ device_id, limit }: { device_id: DeviceId; limit: number }) {
-    return [...this.sessions.values()]
-      .filter((s) => s.device_id === device_id)
-      .sort((a, b) => b.started_at.localeCompare(a.started_at))
-      .slice(0, limit)
-  }
-  async getSession(session_id: SessionId) {
-    return this.sessions.get(session_id) ?? null
-  }
-  async appendMessage(m: Message) {
-    const arr = this.messages.get(m.session_id) ?? []
-    arr.push(m)
-    this.messages.set(m.session_id, arr)
-  }
-  async listMessages({ session_id, limit }: { session_id: SessionId; limit: number }) {
-    return (this.messages.get(session_id) ?? []).slice(-limit)
-  }
-}
-
-// ───── SQLite backend ─────
-class SqliteBackend implements StoreBackend {
-  constructor(private readonly db: Database.Database) {}
-
-  async registerDevice({ install_id }: { install_id: string }) {
-    const existing = this.db
-      .prepare('SELECT id, token FROM devices WHERE install_id = ?')
-      .get(install_id) as { id: string; token: string } | undefined
-    if (existing) {
-      return { device_id: existing.id, token: existing.token }
-    }
-    const id = uuid()
-    const token = uuid()
-    this.db
-      .prepare(
-        'INSERT INTO devices(id, install_id, token, active_session_id, created_at) VALUES (?, ?, ?, NULL, ?)'
-      )
-      .run(id, install_id, token, new Date().toISOString())
-    return { device_id: id, token }
-  }
-  async findDeviceByToken(token: string) {
-    return (
-      (this.db.prepare('SELECT * FROM devices WHERE token = ?').get(token) as Device | undefined) ??
-      null
+    const existing = await this.pool.query<{ id: DeviceId; token: string }>(
+      'SELECT id, token FROM devices WHERE install_id = $1',
+      [install_id]
     )
+    const existingRow = existing.rows[0]
+    if (existingRow) {
+      return { device_id: existingRow.id, token: existingRow.token }
+    }
+
+    const id = uuid()
+    const token = uuid()
+    await this.pool.query(
+      'INSERT INTO devices(id, install_id, token, active_session_id, created_at) VALUES ($1, $2, $3, NULL, $4)',
+      [id, install_id, token, new Date().toISOString()]
+    )
+
+    return { device_id: id, token }
   }
+
+  async findDeviceByToken(token: string) {
+    const result = await this.pool.query<Device>('SELECT * FROM devices WHERE token = $1', [token])
+    return result.rows[0] ?? null
+  }
+
   async createSession({ device_id, now }: { device_id: DeviceId; now: Date }) {
     const id = uuid()
     const startedAt = now.toISOString()
-    this.db
-      .prepare(
-        'INSERT INTO sessions(id, device_id, started_at, ended_at, title) VALUES (?, ?, ?, NULL, NULL)'
-      )
-      .run(id, device_id, startedAt)
+    await this.pool.query(
+      'INSERT INTO sessions(id, device_id, started_at, ended_at, title) VALUES ($1, $2, $3, NULL, NULL)',
+      [id, device_id, startedAt]
+    )
     return { id, device_id, started_at: startedAt, ended_at: null, title: null }
   }
+
   async setActiveSession({
     device_id,
     session_id,
@@ -191,41 +79,63 @@ class SqliteBackend implements StoreBackend {
     device_id: DeviceId
     session_id: SessionId
   }) {
-    this.db
-      .prepare('UPDATE devices SET active_session_id = ? WHERE id = ?')
-      .run(session_id, device_id)
+    await this.pool.query('UPDATE devices SET active_session_id = $1 WHERE id = $2', [
+      session_id,
+      device_id,
+    ])
   }
+
   async getActiveSession(device_id: DeviceId) {
-    const row = this.db
-      .prepare(
-        'SELECT s.* FROM sessions s JOIN devices d ON d.active_session_id = s.id WHERE d.id = ?'
-      )
-      .get(device_id)
-    return (row as Session | undefined) ?? null
+    const result = await this.pool.query<Session>(
+      'SELECT s.* FROM sessions s JOIN devices d ON d.active_session_id = s.id WHERE d.id = $1',
+      [device_id]
+    )
+    return result.rows[0] ?? null
   }
+
   async listSessions({ device_id, limit }: { device_id: DeviceId; limit: number }) {
-    return this.db
-      .prepare('SELECT * FROM sessions WHERE device_id = ? ORDER BY started_at DESC LIMIT ?')
-      .all(device_id, limit) as Session[]
+    const result = await this.pool.query<Session>(
+      'SELECT * FROM sessions WHERE device_id = $1 ORDER BY started_at DESC LIMIT $2',
+      [device_id, limit]
+    )
+    return result.rows
   }
+
   async getSession(session_id: SessionId) {
-    return (
-      (this.db.prepare('SELECT * FROM sessions WHERE id = ?').get(session_id) as
-        | Session
-        | undefined) ?? null
+    const result = await this.pool.query<Session>('SELECT * FROM sessions WHERE id = $1', [
+      session_id,
+    ])
+    return result.rows[0] ?? null
+  }
+
+  async appendMessage(m: Message) {
+    await this.pool.query(
+      'INSERT INTO messages(id, session_id, kind, payload, created_at) VALUES ($1, $2, $3, $4::jsonb, $5)',
+      [m.id, m.session_id, m.kind, JSON.stringify(m), m.created_at]
     )
   }
-  async appendMessage(m: Message) {
-    this.db
-      .prepare(
-        'INSERT INTO messages(id, session_id, kind, payload, created_at) VALUES (?, ?, ?, ?, ?)'
-      )
-      .run(m.id, m.session_id, m.kind, JSON.stringify(m), m.created_at)
-  }
+
   async listMessages({ session_id, limit }: { session_id: SessionId; limit: number }) {
-    const rows = this.db
-      .prepare('SELECT payload FROM messages WHERE session_id = ? ORDER BY created_at ASC LIMIT ?')
-      .all(session_id, limit) as { payload: string }[]
-    return rows.map((r) => JSON.parse(r.payload) as Message)
+    const result = await this.pool.query<{ payload: Message }>(
+      'SELECT payload FROM messages WHERE session_id = $1 ORDER BY created_at ASC LIMIT $2',
+      [session_id, limit]
+    )
+    return result.rows.map((row) => row.payload)
+  }
+}
+
+export async function runMigrations(pool: Pool, migrationsDir: string): Promise<void> {
+  const client = await pool.connect()
+  try {
+    const migrationFiles = readdirSync(migrationsDir)
+      .filter((fileName) => fileName.endsWith('.sql'))
+      .sort()
+
+    for (const fileName of migrationFiles) {
+      const sql = readFileSync(resolve(migrationsDir, fileName), 'utf8')
+      await client.query(sql)
+    }
+  } finally {
+    client.release()
   }
 }

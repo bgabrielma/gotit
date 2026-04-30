@@ -1,0 +1,10 @@
+.git
+.husky
+node_modules
+packages/*/node_modules
+apps/*/.build
+tmp
+data
+.env.local
+coverage
+dist

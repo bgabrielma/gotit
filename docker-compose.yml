@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-gotit}
+      POSTGRES_USER: ${POSTGRES_USER:-gotit}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gotit}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - gotit_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: packages/api/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      GOTIT_DATABASE_URL: ${GOTIT_DATABASE_URL:-postgres://gotit:gotit@postgres:5432/gotit}
+      GOTIT_DATA_DIR: ${GOTIT_DATA_DIR:-/app/data}
+      GOTIT_VAULT_PATH: /vault
+      PORT: ${PORT:-3000}
+    ports:
+      - '${GOTIT_API_PORT:-3000}:${PORT:-3000}'
+    volumes:
+      - gotit_api_data:/app/data
+      - ${GOTIT_HOST_VAULT_PATH:-./tmp/docker-vault}:/vault
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  gotit_postgres_data:
+  gotit_api_data:

@@ -16,25 +16,32 @@ const pkg = JSON.parse(readFileSync(resolve(pkgRoot, 'package.json'), 'utf8')) a
   version: string
 }
 
-const store = Store.create({
-  databaseUrl: cfg.databaseUrl,
-  migrationsDir: resolve(pkgRoot, 'migrations'),
-})
-const llm = LLMConnectorConfig.fromConfig(cfg)
+async function main(): Promise<void> {
+  const store = await Store.create({
+    databaseUrl: cfg.databaseUrl,
+    migrationsDir: resolve(pkgRoot, 'migrations'),
+  })
+  const llm = LLMConnectorConfig.fromConfig(cfg)
 
-const app = createApp({
-  store,
-  visionAI: VisionAI.create(llm),
-  chatAI: ChatAI.create(llm),
-  obsidianWriter: ObsidianWriter.create(),
-  visionPrompt: DEFAULT_VISION_PROMPT,
-  chatPersonaPrompt: DEFAULT_CHAT_PROMPT,
-  vaultPath: cfg.vaultPath,
-  captureFolder: 'GotIt!',
-  dataDir: cfg.dataDir,
-  version: pkg.version,
-})
+  const app = createApp({
+    store,
+    visionAI: VisionAI.create(llm),
+    chatAI: ChatAI.create(llm),
+    obsidianWriter: ObsidianWriter.create(),
+    visionPrompt: DEFAULT_VISION_PROMPT,
+    chatPersonaPrompt: DEFAULT_CHAT_PROMPT,
+    vaultPath: cfg.vaultPath,
+    captureFolder: 'GotIt!',
+    dataDir: cfg.dataDir,
+    version: pkg.version,
+  })
 
-app.listen(cfg.port, () => {
-  console.warn(`got-it api listening on ${cfg.port}`)
+  app.listen(cfg.port, () => {
+    console.warn(`got-it api listening on ${cfg.port}`)
+  })
+}
+
+main().catch((error: unknown) => {
+  console.error(error)
+  process.exit(1)
 })

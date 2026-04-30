@@ -421,7 +421,7 @@ pnpm --filter @got-it/api test:integration
 
 Expected: PASS for both commands.
 
-- [ ] **Step 3.7: Commit Tasks 2 and 3**
+- [x] **Step 3.7: Commit Tasks 2 and 3**
 
 ```bash
 git add packages/api/src/app.ts packages/api/src/middleware/auth.ts packages/api/src/routes packages/api/src/__tests__
