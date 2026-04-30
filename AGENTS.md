@@ -8,7 +8,7 @@ GotIt! is a macOS-first second-brain app with a native client and a smart backen
 
 Product-level behavior, user flows, session semantics, and capability definitions live in:
 
-- `OVERVIEW.md` — what the product does
+- `README.md` — what the product does
 - `BOARD.md` — feature scope, roadmap, and dependencies
 - `STATUS.md` — validated progress and active state
 
@@ -191,7 +191,7 @@ Examples: implementing `extractUrls`, adding the capture API route, wiring a glo
 
 #### Docs and Spec Edits
 
-Changes to specs, plans, `OVERVIEW.md`, `BOARD.md`, architecture docs, or research notes that do not implement product behavior.
+Changes to specs, plans, `README.md`, `BOARD.md`, architecture docs, or research notes that do not implement product behavior.
 
 Requires:
 

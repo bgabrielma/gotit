@@ -54,7 +54,7 @@ Ship the macOS-native imperative shell for the smallest end-to-end vertical of F
 | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `docs/specs/f001-screen-capture-mvp.md` | Parent spec. Defines user flows, session semantics, API contracts, error rules. This sub-spec inherits everything not contradicted here. |
 | `docs/plans/f001-phase-1a-backend.md`   | Backend plan (completed). API behavior is implemented and validated.                                                                     |
-| `OVERVIEW.md`                           | Product positioning. Menu-bar-companion shape, screen-aware chat.                                                                        |
+| `README.md`                             | Product positioning. Menu-bar-companion shape, screen-aware chat.                                                                        |
 | `BOARD.md`                              | Feature backlog. Updated by this spec — see §10.                                                                                         |
 | `STATUS.md`                             | Current sprint state. Will be updated by validator after Phase 1a Plan B completes.                                                      |
 | `CLAUDE.md` / `AGENTS.md`               | Architecture rules, harness, quality pipeline, Husky gates.                                                                              |

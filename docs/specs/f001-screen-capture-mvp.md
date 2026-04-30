@@ -579,7 +579,7 @@ None blocking implementation. Items that may emerge during build:
 
 ## 19. References
 
-- `OVERVIEW.md` — product behavior and capability table
+- `README.md` — product behavior and capability table
 - `BOARD.md` — feature dependencies and sprint sequence
 - `AGENTS.md` (a.k.a. `CLAUDE.md`) — architecture rules, quality pipeline, testing strategy
 - `docs/research/macos-apis.md` — ScreenCaptureKit, AVAudioEngine, NSPanel notes
