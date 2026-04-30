@@ -4,7 +4,7 @@
 
 **Goal:** Build the Express/TypeScript backend that powers F001 Phase 1a (Capture + Chat + Save). Vision pipeline, chat completions, Obsidian save, session storage. End state: a single `pnpm dev` starts the API; integration tests via Nullable wrappers pass; macOS client (next plan) plugs in via documented HTTP contracts.
 
-**Architecture:** Functional Core / Imperative Shell. `packages/core` is pure TypeScript with zero side effects, tested with real inputs. `apps/api` is the Express shell that owns I/O — Anthropic SDK calls, SQLite, filesystem writes — wrapped in `createNull()`-capable infrastructure classes (James Shore Nullable pattern). `packages/shared` exports Zod schemas + types consumed by both shell and core. Strict TS, no `any`, no `@ts-ignore`. No mock frameworks anywhere.
+**Architecture:** Functional Core / Imperative Shell. `packages/core` is pure TypeScript with zero side effects, tested with real inputs. `packages/api` is the Express shell that owns I/O — Anthropic SDK calls, SQLite, filesystem writes — wrapped in `createNull()`-capable infrastructure classes (James Shore Nullable pattern). `packages/shared` exports Zod schemas + types consumed by both shell and core. Strict TS, no `any`, no `@ts-ignore`. No mock frameworks anywhere.
 
 **Tech Stack:** Node 22.16.0 (pinned via `.nvmrc`), pnpm 10 workspaces, TypeScript 5.x strict, Express 4, vitest, better-sqlite3, @anthropic-ai/sdk, zod, dotenv, husky, lint-staged, eslint + @typescript-eslint, prettier.
 
@@ -66,7 +66,7 @@ got-it/
 │       ├── resolve-save-format.ts        (create)
 │       └── resolve-save-format.test.ts   (create)
 │
-└── apps/api/
+└── packages/api/
     ├── package.json                      (create)
     ├── tsconfig.json                     (create)
     ├── migrations/
@@ -104,7 +104,7 @@ got-it/
 
 - `packages/shared` defines wire types (Zod). No runtime logic.
 - `packages/core` consumes types from shared. Pure. Tests use real inputs.
-- `apps/api` consumes shared + core. `process.env` is read **only** in `src/config.ts`. Routes consume `Config` and infrastructure wrappers from a DI container assembled by `createApp({ config, store, visionAI, chatAI, obsidianWriter })`.
+- `packages/api` consumes shared + core. `process.env` is read **only** in `src/config.ts`. Routes consume `Config` and infrastructure wrappers from a DI container assembled by `createApp({ config, store, visionAI, chatAI, obsidianWriter })`.
 
 ---
 
@@ -1490,13 +1490,13 @@ git commit -m "feat(core): add pure buildChatRequest (multi-modal context as tex
 
 ---
 
-### Task 15: `apps/api` package skeleton + dev script
+### Task 15: `packages/api` package skeleton + dev script
 
 **Files:**
 
-- Create: `apps/api/package.json`, `apps/api/tsconfig.json`, `apps/api/vitest.config.ts`, `apps/api/src/server.ts`
+- Create: `packages/api/package.json`, `packages/api/tsconfig.json`, `packages/api/vitest.config.ts`, `packages/api/src/server.ts`
 
-- [x] **Step 15.1: Create `apps/api/package.json`**
+- [x] **Step 15.1: Create `packages/api/package.json`**
 
 ```json
 {
@@ -1535,7 +1535,7 @@ git commit -m "feat(core): add pure buildChatRequest (multi-modal context as tex
 }
 ```
 
-- [x] **Step 15.2: Create `apps/api/tsconfig.json`**
+- [x] **Step 15.2: Create `packages/api/tsconfig.json`**
 
 ```json
 {
@@ -1550,7 +1550,7 @@ git commit -m "feat(core): add pure buildChatRequest (multi-modal context as tex
 }
 ```
 
-- [x] **Step 15.3: Create `apps/api/vitest.config.ts`**
+- [x] **Step 15.3: Create `packages/api/vitest.config.ts`**
 
 ```ts
 import { defineConfig } from 'vitest/config'
@@ -1559,10 +1559,10 @@ export default defineConfig({
 })
 ```
 
-- [x] **Step 15.4: Stub `apps/api/src/server.ts`** (will be replaced in Task 24)
+- [x] **Step 15.4: Stub `packages/api/src/server.ts`** (will be replaced in Task 24)
 
 ```ts
-console.error('apps/api server stub — implemented in Task 24')
+console.error('packages/api server stub — implemented in Task 24')
 ```
 
 - [x] **Step 15.5: Install**
@@ -1574,8 +1574,8 @@ pnpm install
 - [x] **Step 15.6: Commit**
 
 ```bash
-git add apps/api/package.json apps/api/tsconfig.json apps/api/vitest.config.ts apps/api/src/server.ts pnpm-lock.yaml
-git commit -m "chore(api): scaffold apps/api package"
+git add packages/api/package.json packages/api/tsconfig.json packages/api/vitest.config.ts packages/api/src/server.ts pnpm-lock.yaml
+git commit -m "chore(api): scaffold packages/api package"
 ```
 
 ---
@@ -1584,14 +1584,14 @@ git commit -m "chore(api): scaffold apps/api package"
 
 **Files:**
 
-- Create: `apps/api/src/config.ts`, `apps/api/src/config.test.ts`
+- Create: `packages/api/src/config.ts`, `packages/api/src/config.test.ts`
 
 Per spec §13.2 — the **only** place `process.env` is read.
 
 - [x] **Step 16.1: Write failing test**
 
 ```ts
-// apps/api/src/config.test.ts
+// packages/api/src/config.test.ts
 import { describe, expect, it } from 'vitest'
 import { loadConfig } from './config.js'
 
@@ -1643,7 +1643,7 @@ pnpm --filter @got-it/api test config
 - [x] **Step 16.3: Implement**
 
 ```ts
-// apps/api/src/config.ts
+// packages/api/src/config.ts
 import { z } from 'zod'
 
 const ConfigSchema = z.object({
@@ -1684,7 +1684,7 @@ export function loadConfig(env: NodeJS.ProcessEnv | Record<string, string | unde
 - [x] **Step 16.5: Commit**
 
 ```bash
-git add apps/api/src/config.ts apps/api/src/config.test.ts
+git add packages/api/src/config.ts packages/api/src/config.test.ts
 git commit -m "feat(api): add Config module with Zod validation, fail-fast on missing keys"
 ```
 
@@ -1694,9 +1694,9 @@ git commit -m "feat(api): add Config module with Zod validation, fail-fast on mi
 
 **Files:**
 
-- Create: `apps/api/migrations/001_init.sql`, `apps/api/src/infra/store.ts`, `apps/api/src/infra/store.test.ts`
+- Create: `packages/api/migrations/001_init.sql`, `packages/api/src/infra/store.ts`, `packages/api/src/infra/store.test.ts`
 
-- [x] **Step 17.1: Create `apps/api/migrations/001_init.sql`**
+- [x] **Step 17.1: Create `packages/api/migrations/001_init.sql`**
 
 ```sql
 CREATE TABLE devices (
@@ -1737,7 +1737,7 @@ CREATE TABLE images (
 - [x] **Step 17.2: Write failing test**
 
 ```ts
-// apps/api/src/infra/store.test.ts
+// packages/api/src/infra/store.test.ts
 import { describe, expect, it, beforeEach } from 'vitest'
 import { Store } from './store.js'
 import type { Message } from '@got-it/shared'
@@ -1793,7 +1793,7 @@ describe('Store (Nullable)', () => {
 - [x] **Step 17.4: Implement** — `Store` with two backends: real (better-sqlite3) and embedded stub used by `createNull()`. Both implement the same interface.
 
 ```ts
-// apps/api/src/infra/store.ts
+// packages/api/src/infra/store.ts
 import Database from 'better-sqlite3'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -2018,7 +2018,7 @@ pnpm --filter @got-it/api test store
 - [x] **Step 17.6: Commit**
 
 ```bash
-git add apps/api/migrations apps/api/src/infra/store.*
+git add packages/api/migrations packages/api/src/infra/store.*
 git commit -m "feat(api): add Store wrapper with SQLite backend and in-memory Nullable"
 ```
 
@@ -2028,12 +2028,12 @@ git commit -m "feat(api): add Store wrapper with SQLite backend and in-memory Nu
 
 **Files:**
 
-- Create: `apps/api/src/prompts/default-vision.ts`, `apps/api/src/infra/vision-ai.ts`, `apps/api/src/infra/vision-ai.test.ts`
+- Create: `packages/api/src/prompts/default-vision.ts`, `packages/api/src/infra/vision-ai.ts`, `packages/api/src/infra/vision-ai.test.ts`
 
 - [x] **Step 18.1: Create the default vision prompt**
 
 ```ts
-// apps/api/src/prompts/default-vision.ts
+// packages/api/src/prompts/default-vision.ts
 export const DEFAULT_VISION_PROMPT = `You are GotIt!'s screen-analysis engine.
 
 Given a screenshot, return a structured JSON object with these fields:
@@ -2049,7 +2049,7 @@ Prioritize URLs first. Return JSON matching the schema exactly. No prose outside
 - [x] **Step 18.2: Write failing test**
 
 ```ts
-// apps/api/src/infra/vision-ai.test.ts
+// packages/api/src/infra/vision-ai.test.ts
 import { describe, expect, it } from 'vitest'
 import { VisionAI } from './vision-ai.js'
 
@@ -2083,7 +2083,7 @@ describe('VisionAI (Nullable)', () => {
 - [x] **Step 18.4: Implement**
 
 ```ts
-// apps/api/src/infra/vision-ai.ts
+// packages/api/src/infra/vision-ai.ts
 import Anthropic from '@anthropic-ai/sdk'
 import type { AnalysisResult } from '@got-it/shared'
 import { AnalysisResultSchema } from '@got-it/shared'
@@ -2171,7 +2171,7 @@ class AnthropicVisionBackend implements VisionBackend {
 - [x] **Step 18.6: Commit**
 
 ```bash
-git add apps/api/src/prompts/default-vision.ts apps/api/src/infra/vision-ai.*
+git add packages/api/src/prompts/default-vision.ts packages/api/src/infra/vision-ai.*
 git commit -m "feat(api): add VisionAI wrapper (Anthropic backend + Nullable stub)"
 ```
 
@@ -2181,12 +2181,12 @@ git commit -m "feat(api): add VisionAI wrapper (Anthropic backend + Nullable stu
 
 **Files:**
 
-- Create: `apps/api/src/prompts/default-chat.ts`, `apps/api/src/infra/chat-ai.ts`, `apps/api/src/infra/chat-ai.test.ts`
+- Create: `packages/api/src/prompts/default-chat.ts`, `packages/api/src/infra/chat-ai.ts`, `packages/api/src/infra/chat-ai.test.ts`
 
 - [x] **Step 19.1: Create default chat persona prompt**
 
 ```ts
-// apps/api/src/prompts/default-chat.ts
+// packages/api/src/prompts/default-chat.ts
 export const DEFAULT_CHAT_PROMPT = `You are GotIt!, a concise screen-aware second-brain assistant.
 
 Behaviors:
@@ -2200,7 +2200,7 @@ Behaviors:
 - [x] **Step 19.2: Write failing test**
 
 ```ts
-// apps/api/src/infra/chat-ai.test.ts
+// packages/api/src/infra/chat-ai.test.ts
 import { describe, expect, it } from 'vitest'
 import { ChatAI } from './chat-ai.js'
 
@@ -2234,7 +2234,7 @@ describe('ChatAI (Nullable)', () => {
 - [x] **Step 19.4: Implement**
 
 ```ts
-// apps/api/src/infra/chat-ai.ts
+// packages/api/src/infra/chat-ai.ts
 import Anthropic from '@anthropic-ai/sdk'
 
 export type ChatTurn = { role: 'user' | 'assistant'; content: string }
@@ -2303,7 +2303,7 @@ class AnthropicChatBackend implements ChatBackend {
 - [x] **Step 19.6: Commit**
 
 ```bash
-git add apps/api/src/prompts/default-chat.ts apps/api/src/infra/chat-ai.*
+git add packages/api/src/prompts/default-chat.ts packages/api/src/infra/chat-ai.*
 git commit -m "feat(api): add ChatAI wrapper (Anthropic backend + Nullable stub)"
 ```
 
@@ -2313,12 +2313,12 @@ git commit -m "feat(api): add ChatAI wrapper (Anthropic backend + Nullable stub)
 
 **Files:**
 
-- Create: `apps/api/src/infra/obsidian-writer.ts`, `apps/api/src/infra/obsidian-writer.test.ts`
+- Create: `packages/api/src/infra/obsidian-writer.ts`, `packages/api/src/infra/obsidian-writer.test.ts`
 
 - [x] **Step 20.1: Write failing test**
 
 ```ts
-// apps/api/src/infra/obsidian-writer.test.ts
+// packages/api/src/infra/obsidian-writer.test.ts
 import { describe, expect, it } from 'vitest'
 import { ObsidianWriter } from './obsidian-writer.js'
 
@@ -2358,7 +2358,7 @@ describe('ObsidianWriter (Nullable)', () => {
 - [x] **Step 20.3: Implement**
 
 ```ts
-// apps/api/src/infra/obsidian-writer.ts
+// packages/api/src/infra/obsidian-writer.ts
 import { mkdir, readdir, rename, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { randomBytes } from 'node:crypto'
@@ -2440,7 +2440,7 @@ class StubBackend implements ObsidianBackend {
 - [x] **Step 20.5: Commit**
 
 ```bash
-git add apps/api/src/infra/obsidian-writer.*
+git add packages/api/src/infra/obsidian-writer.*
 git commit -m "feat(api): add ObsidianWriter wrapper (atomic writes + Nullable)"
 ```
 
@@ -2450,12 +2450,12 @@ git commit -m "feat(api): add ObsidianWriter wrapper (atomic writes + Nullable)"
 
 **Files:**
 
-- Create: `apps/api/src/middleware/auth.ts`, `apps/api/src/app.ts`
+- Create: `packages/api/src/middleware/auth.ts`, `packages/api/src/app.ts`
 
-- [x] **Step 21.1: Create `apps/api/src/middleware/auth.ts`**
+- [x] **Step 21.1: Create `packages/api/src/middleware/auth.ts`**
 
 ```ts
-// apps/api/src/middleware/auth.ts
+// packages/api/src/middleware/auth.ts
 import type { NextFunction, Request, Response } from 'express'
 import type { Store } from '../infra/store.js'
 import type { Device } from '../infra/store.js'
@@ -2488,10 +2488,10 @@ export function deviceAuth(store: Store) {
 }
 ```
 
-- [x] **Step 21.2: Create `apps/api/src/app.ts`** — DI factory. Routes are registered in tasks 22-26 by appending to this file or via separate router files imported here. Initial form:
+- [x] **Step 21.2: Create `packages/api/src/app.ts`** — DI factory. Routes are registered in tasks 22-26 by appending to this file or via separate router files imported here. Initial form:
 
 ```ts
-// apps/api/src/app.ts
+// packages/api/src/app.ts
 import express, { type Express } from 'express'
 import type { Store } from './infra/store.js'
 import type { VisionAI } from './infra/vision-ai.js'
@@ -2537,7 +2537,7 @@ export function createApp(deps: AppDeps): Express {
 - [x] **Step 21.3: Commit (without yet running)**
 
 ```bash
-git add apps/api/src/middleware/auth.ts apps/api/src/app.ts
+git add packages/api/src/middleware/auth.ts packages/api/src/app.ts
 git commit -m "feat(api): add createApp factory and deviceAuth middleware"
 ```
 
@@ -2547,12 +2547,12 @@ git commit -m "feat(api): add createApp factory and deviceAuth middleware"
 
 **Files:**
 
-- Create: `apps/api/src/routes/health.ts` + `.test.ts`, `apps/api/src/routes/device.ts` + `.test.ts`
+- Create: `packages/api/src/routes/health.ts` + `.test.ts`, `packages/api/src/routes/device.ts` + `.test.ts`
 
 - [x] **Step 22.1: Write failing test for health**
 
 ```ts
-// apps/api/src/routes/health.test.ts
+// packages/api/src/routes/health.test.ts
 import { describe, expect, it } from 'vitest'
 import request from 'supertest'
 import { createApp } from '../app.js'
@@ -2591,7 +2591,7 @@ describe('GET /health', () => {
 - [x] **Step 22.3: Implement**
 
 ```ts
-// apps/api/src/routes/health.ts
+// packages/api/src/routes/health.ts
 import { Router } from 'express'
 import type { AppDeps } from '../app.js'
 
@@ -2609,7 +2609,7 @@ export function healthRoute(deps: AppDeps): Router {
 - [x] **Step 22.5: Write failing test for device registration**
 
 ```ts
-// apps/api/src/routes/device.test.ts
+// packages/api/src/routes/device.test.ts
 import { describe, expect, it } from 'vitest'
 import request from 'supertest'
 import { createApp } from '../app.js'
@@ -2663,7 +2663,7 @@ describe('POST /device', () => {
 - [x] **Step 22.7: Implement**
 
 ```ts
-// apps/api/src/routes/device.ts
+// packages/api/src/routes/device.ts
 import { Router } from 'express'
 import { DeviceRegistrationRequestSchema } from '@got-it/shared'
 import type { AppDeps } from '../app.js'
@@ -2690,7 +2690,7 @@ export function deviceRoute(deps: AppDeps): Router {
 - [x] **Step 22.9: Commit**
 
 ```bash
-git add apps/api/src/routes/health.* apps/api/src/routes/device.*
+git add packages/api/src/routes/health.* packages/api/src/routes/device.*
 git commit -m "feat(api): add GET /health and POST /device routes"
 ```
 
@@ -2700,14 +2700,14 @@ git commit -m "feat(api): add GET /health and POST /device routes"
 
 **Files:**
 
-- Create: `apps/api/src/routes/sessions.ts` + `.test.ts`
+- Create: `packages/api/src/routes/sessions.ts` + `.test.ts`
 
 Covers `POST /sessions` (reset → new active), `GET /sessions/active`, `POST /sessions/:id/activate`, `GET /sessions`.
 
 - [x] **Step 23.1: Write failing test**
 
 ```ts
-// apps/api/src/routes/sessions.test.ts
+// packages/api/src/routes/sessions.test.ts
 import { describe, expect, it, beforeEach } from 'vitest'
 import request from 'supertest'
 import { createApp } from '../app.js'
@@ -2787,7 +2787,7 @@ describe('sessions routes', () => {
 - [x] **Step 23.3: Implement**
 
 ```ts
-// apps/api/src/routes/sessions.ts
+// packages/api/src/routes/sessions.ts
 import { Router } from 'express'
 import { startNewSession } from '@got-it/core'
 import type { AppDeps } from '../app.js'
@@ -2843,7 +2843,7 @@ export function sessionsRouter(deps: AppDeps): Router {
 - [x] **Step 23.5: Commit**
 
 ```bash
-git add apps/api/src/routes/sessions.*
+git add packages/api/src/routes/sessions.*
 git commit -m "feat(api): add sessions routes (create/active/activate/list) with deviceAuth"
 ```
 
@@ -2853,12 +2853,12 @@ git commit -m "feat(api): add sessions routes (create/active/activate/list) with
 
 **Files:**
 
-- Create: `apps/api/src/routes/capture.ts` + `.test.ts`
+- Create: `packages/api/src/routes/capture.ts` + `.test.ts`
 
 - [x] **Step 24.1: Write failing test**
 
 ```ts
-// apps/api/src/routes/capture.test.ts
+// packages/api/src/routes/capture.test.ts
 import { describe, expect, it } from 'vitest'
 import request from 'supertest'
 import { createApp } from '../app.js'
@@ -2987,7 +2987,7 @@ describe('POST /capture', () => {
 - [x] **Step 24.3: Implement**
 
 ```ts
-// apps/api/src/routes/capture.ts
+// packages/api/src/routes/capture.ts
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Router } from 'express'
@@ -3095,7 +3095,7 @@ export function captureRouter(deps: AppDeps): Router {
 - [x] **Step 24.5: Commit**
 
 ```bash
-git add apps/api/src/routes/capture.*
+git add packages/api/src/routes/capture.*
 git commit -m "feat(api): add POST /capture (vision + auto-summary chat turn)"
 ```
 
@@ -3105,12 +3105,12 @@ git commit -m "feat(api): add POST /capture (vision + auto-summary chat turn)"
 
 **Files:**
 
-- Create: `apps/api/src/routes/chat.ts` + `.test.ts`
+- Create: `packages/api/src/routes/chat.ts` + `.test.ts`
 
 - [x] **Step 25.1: Write failing test**
 
 ```ts
-// apps/api/src/routes/chat.test.ts
+// packages/api/src/routes/chat.test.ts
 import { describe, expect, it } from 'vitest'
 import request from 'supertest'
 import { createApp } from '../app.js'
@@ -3176,7 +3176,7 @@ describe('POST /chat', () => {
 - [x] **Step 25.3: Implement**
 
 ```ts
-// apps/api/src/routes/chat.ts
+// packages/api/src/routes/chat.ts
 import { Router } from 'express'
 import { v4 as uuid } from 'uuid'
 import { ChatRequestSchema } from '@got-it/shared'
@@ -3251,7 +3251,7 @@ export function chatRouter(deps: AppDeps): Router {
 - [x] **Step 25.5: Commit**
 
 ```bash
-git add apps/api/src/routes/chat.*
+git add packages/api/src/routes/chat.*
 git commit -m "feat(api): add POST /chat with text source (mic/listen rejected for Phase 1a)"
 ```
 
@@ -3261,12 +3261,12 @@ git commit -m "feat(api): add POST /chat with text source (mic/listen rejected f
 
 **Files:**
 
-- Create: `apps/api/src/routes/save.ts` + `.test.ts`
+- Create: `packages/api/src/routes/save.ts` + `.test.ts`
 
 - [x] **Step 26.1: Write failing test**
 
 ````ts
-// apps/api/src/routes/save.test.ts
+// packages/api/src/routes/save.test.ts
 import { describe, expect, it } from 'vitest'
 import request from 'supertest'
 import { createApp } from '../app.js'
@@ -3415,7 +3415,7 @@ describe('POST /save', () => {
 - [x] **Step 26.3: Implement**
 
 ```ts
-// apps/api/src/routes/save.ts
+// packages/api/src/routes/save.ts
 import { Router } from 'express'
 import { v4 as uuid } from 'uuid'
 import { SaveRequestSchema } from '@got-it/shared'
@@ -3529,7 +3529,7 @@ export function saveRouter(deps: AppDeps): Router {
 - [x] **Step 26.5: Commit**
 
 ```bash
-git add apps/api/src/routes/save.*
+git add packages/api/src/routes/save.*
 git commit -m "feat(api): add POST /save (default + override templates, atomic vault write)"
 ```
 
@@ -3539,12 +3539,12 @@ git commit -m "feat(api): add POST /save (default + override templates, atomic v
 
 **Files:**
 
-- Modify: `apps/api/src/server.ts`
+- Modify: `packages/api/src/server.ts`
 
 - [x] **Step 27.1: Replace stub**
 
 ```ts
-// apps/api/src/server.ts
+// packages/api/src/server.ts
 import 'dotenv/config'
 import { resolve } from 'node:path'
 import { readFileSync } from 'node:fs'
@@ -3558,13 +3558,13 @@ import { DEFAULT_VISION_PROMPT } from './prompts/default-vision.js'
 import { DEFAULT_CHAT_PROMPT } from './prompts/default-chat.js'
 
 const cfg = loadConfig(process.env)
-const pkg = JSON.parse(readFileSync(resolve('apps/api/package.json'), 'utf8')) as {
+const pkg = JSON.parse(readFileSync(resolve('packages/api/package.json'), 'utf8')) as {
   version: string
 }
 
 const store = Store.create({
   dbPath: cfg.dbPath,
-  migrationsDir: resolve('apps/api/migrations'),
+  migrationsDir: resolve('packages/api/migrations'),
 })
 
 const app = createApp({
@@ -3599,7 +3599,7 @@ The repo's `.env.template` was amended alongside spec §13.2 / §17 to declare t
 GOTIT_VAULT_PATH=
 ```
 
-- [x] **Step 27.2b: Extend `apps/api/src/config.ts` schema, type, and return**
+- [x] **Step 27.2b: Extend `packages/api/src/config.ts` schema, type, and return**
 
 Add the line marked `+` in `ConfigSchema`:
 
@@ -3649,7 +3649,7 @@ export function loadConfig(env: NodeJS.ProcessEnv | Record<string, string | unde
 }
 ```
 
-- [x] **Step 27.2c: Extend `apps/api/src/config.test.ts`**
+- [x] **Step 27.2c: Extend `packages/api/src/config.test.ts`**
 
 Append two cases to the existing `describe('loadConfig', ...)` block:
 
@@ -3706,7 +3706,7 @@ Expected: `{"ok":true,"version":"0.0.1"}`
 - [x] **Step 27.5: Commit**
 
 ```bash
-git add apps/api/src/server.ts apps/api/src/config.ts apps/api/src/config.test.ts .env.template
+git add packages/api/src/server.ts packages/api/src/config.ts packages/api/src/config.test.ts .env.template
 git commit -m "feat(api): wire server entry point with dotenv, Config, and real infra wrappers"
 ```
 
@@ -3789,11 +3789,11 @@ Post-implementation adjustments applied in this branch:
   - `GOTIT_LLM_CONNECTOR=openai|local`
   - `GOTIT_LLM_BASE_URL` (required only for `local`, e.g. `http://localhost:11434/v1`)
   - `GOTIT_LLM_API_KEY` (optional for `local`, defaults to `ollama`)
-  - New entrypoint strategy class: `apps/api/src/infra/llm-connector-config.ts`
+  - New entrypoint strategy class: `packages/api/src/infra/llm-connector-config.ts`
 - `server.ts` now injects the same `openaiApiKey` + `openaiModel` into both `ChatAI` and `VisionAI`.
 - API tests were reorganized to Jest-style folders:
-  - `apps/api/src/__tests__/unit/**`
-  - `apps/api/src/__tests__/integration/**`
+  - `packages/api/src/__tests__/unit/**`
+  - `packages/api/src/__tests__/integration/**`
 - Nullable test seams were simplified from `createNull()` on every infrastructure wrapper to explicit `fromBackend(...)` backend injection for `VisionAI`, `ChatAI`, and `ObsidianWriter`. `Store.createNull()` remains for the in-memory store. This preserves the no-production-stub rule and keeps test doubles explicit in test code.
 - API tests may use Vitest spies (`vi.fn`) in test helpers to assert shell interactions. The banned pattern is module-level mocking of production dependencies (`jest.mock`, `vi.mock`, SDK mocks), not test-local function spies passed through explicit backend injection.
 - `POST /save` is intentionally implemented as a backend vault write for Plan A's local dev slice. It returns the written `vault_path` plus `save_record_id`, and appends a `save_record` to the active session. This differs from the longer-term client/plugin Vault API handoff in the F001 product spec and should be reconciled before Plan B/Obsidian client integration.
@@ -3805,19 +3805,19 @@ Post-implementation adjustments applied in this branch:
 Additional post-plan fixes applied on 2026-04-29 (validator traceability):
 
 - Root Vitest discovery was corrected from `src/**/__tests__/**/*.test.ts` to `src/**/*.test.ts` so `packages/core` and `packages/shared` tests are discovered by `pnpm test`.
-- Live integration file was renamed from `openai.live.test.ts` to `llm.live.test.ts`; `apps/api/package.json` scripts were updated (`test:integration` exclude + `test:live` target).
+- Live integration file was renamed from `openai.live.test.ts` to `llm.live.test.ts`; `packages/api/package.json` scripts were updated (`test:integration` exclude + `test:live` target).
 - Live vision test now uses the runtime default vision prompt constant (`DEFAULT_VISION_PROMPT`) instead of an inline prompt string.
 - `packages/core/src/extract-urls.ts` was extended to extract bare domains (e.g., `google.com`), normalize to `https://...`, and skip email-like matches.
-- `apps/api/src/routes/capture.ts` now refines `analysis.urls` with a pure-core pass (`extractUrls(analysis.raw_text)`) and merges without duplicates.
-- `apps/api/src/infra/vision-ai.ts` normalization was hardened:
+- `packages/api/src/routes/capture.ts` now refines `analysis.urls` with a pure-core pass (`extractUrls(analysis.raw_text)`) and merges without duplicates.
+- `packages/api/src/infra/vision-ai.ts` normalization was hardened:
   - alias lookup type-safe fix in `normalizeContextKind`
   - URL normalization/filtering before schema parse (trim punctuation, add scheme, drop invalid URLs, dedupe).
 - New test coverage added for the above behavior:
-  - `apps/api/src/__tests__/unit/infra/vision-ai.test.ts`
-  - extra integration assertions in `apps/api/src/__tests__/integration/routes/capture.test.ts`
+  - `packages/api/src/__tests__/unit/infra/vision-ai.test.ts`
+  - extra integration assertions in `packages/api/src/__tests__/integration/routes/capture.test.ts`
   - extra core assertions in `packages/core/src/extract-urls.test.ts`
 - Live test debug output was intentionally reduced to a compact preview object (`context_kind`, `summary`, `urls`, `tags`, `relevant_info`, `keywords_context`) for faster human validation.
-- ESLint active config (`eslint.config.cjs`, flat config) now allows `console.debug` only for `apps/api/src/**/__tests__/**/*.live.test.ts`; global rule remains strict elsewhere.
+- ESLint active config (`eslint.config.cjs`, flat config) now allows `console.debug` only for `packages/api/src/**/__tests__/**/*.live.test.ts`; global rule remains strict elsewhere.
 
 Post-validation action items recorded from 2026-04-30 revalidation:
 
@@ -3831,22 +3831,22 @@ Post-validation action items recorded from 2026-04-30 revalidation:
 
 **Spec coverage** (against §16.1 Phase 1a sprint contract):
 
-| Sprint criterion                                                               | Implementing task                                               |
-| ------------------------------------------------------------------------------ | --------------------------------------------------------------- |
-| Keybind triggers screen capture, panel <3s                                     | Task 24 (`POST /capture`) — client portion in Plan B            |
-| Screenshot drag-in updates active session                                      | Task 24 (server side) — client UI in Plan B                     |
-| Direct invoke opens panel without capturing                                    | (client only) — Plan B                                          |
-| Text chat round-trips through backend                                          | Task 25                                                         |
-| "Look again" appends to active session                                         | Task 24 (same `POST /capture` route)                            |
-| Reset starts new session, old persists                                         | Task 23 (`POST /sessions`)                                      |
-| Save writes Markdown to vault folder with default template                     | Tasks 12, 20, 26; amended backend-write behavior above          |
-| Save instruction overrides body format                                         | Tasks 13, 26                                                    |
-| Offline mode                                                                   | (client only) — Plan B; server provides `GET /health` (Task 22) |
-| Device fallback                                                                | (client only) — Plan B                                          |
-| Configuration: `.nvmrc`, `.env.template`, `config.ts`, controlled env boundary | Tasks 1, 16, 27; entrypoint/test harness exception above        |
-| `packages/core` tests pass with zero doubles                                   | Tasks 8-14                                                      |
-| `apps/api` tests pass with explicit injected backends; no module-level mocks   | Tasks 17-26; amended `fromBackend(...)` test seam above         |
-| Husky pre-push gates pass                                                      | Tasks 3, 4, 28                                                  |
+| Sprint criterion                                                                 | Implementing task                                               |
+| -------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Keybind triggers screen capture, panel <3s                                       | Task 24 (`POST /capture`) — client portion in Plan B            |
+| Screenshot drag-in updates active session                                        | Task 24 (server side) — client UI in Plan B                     |
+| Direct invoke opens panel without capturing                                      | (client only) — Plan B                                          |
+| Text chat round-trips through backend                                            | Task 25                                                         |
+| "Look again" appends to active session                                           | Task 24 (same `POST /capture` route)                            |
+| Reset starts new session, old persists                                           | Task 23 (`POST /sessions`)                                      |
+| Save writes Markdown to vault folder with default template                       | Tasks 12, 20, 26; amended backend-write behavior above          |
+| Save instruction overrides body format                                           | Tasks 13, 26                                                    |
+| Offline mode                                                                     | (client only) — Plan B; server provides `GET /health` (Task 22) |
+| Device fallback                                                                  | (client only) — Plan B                                          |
+| Configuration: `.nvmrc`, `.env.template`, `config.ts`, controlled env boundary   | Tasks 1, 16, 27; entrypoint/test harness exception above        |
+| `packages/core` tests pass with zero doubles                                     | Tasks 8-14                                                      |
+| `packages/api` tests pass with explicit injected backends; no module-level mocks | Tasks 17-26; amended `fromBackend(...)` test seam above         |
+| Husky pre-push gates pass                                                        | Tasks 3, 4, 28                                                  |
 
 Server-side coverage of Phase 1a is complete. Client-side criteria are explicitly deferred to Plan B and not gaps in this plan.
 

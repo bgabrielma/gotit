@@ -19,7 +19,7 @@ _F014 is the next feature once F001 Phase 1a Plan B implementation begins. See B
 
 ## Backlog (Prioritized)
 
-- [ ] **F014** Postgres Storage Refactor (docker-compose) — Replace the SQLite `Store` infrastructure wrapper in `apps/api` with Postgres provisioned via `docker-compose`. Small, scoped refactor: swap the wrapper implementation, port the migration files (`apps/api/migrations/`) to Postgres dialect, add a `docker-compose.yml` for local dev, update `.env.template` (e.g., `GOTIT_DATABASE_URL`). No product behavior change. **Top priority once F001 Phase 1a Plan B starts** — done before F013 to avoid migrating a Postgres-shaped dataset twice.
+- [ ] **F014** Postgres Storage Refactor (docker-compose) — Replace the SQLite `Store` infrastructure wrapper in `packages/api` with Postgres provisioned via `docker-compose`. Small, scoped refactor: swap the wrapper implementation, port the migration files (`packages/api/migrations/`) to Postgres dialect, add a `docker-compose.yml` for local dev, update `.env.template` (e.g., `GOTIT_DATABASE_URL`). No product behavior change. **Top priority once F001 Phase 1a Plan B starts** — done before F013 to avoid migrating a Postgres-shaped dataset twice.
   - Depends on: F001 Phase 1a Plan B (in progress)
   - Spec: `docs/specs/f014-postgres-storage-refactor.md` _(pending)_
   - Introduces: `docker-compose.yml`, Postgres `Store` adapter (still behind same protocol), Postgres-dialect migrations, env var changes.

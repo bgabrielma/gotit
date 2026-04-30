@@ -28,9 +28,9 @@ got-it/
 │   ├── plans/                   # Implementation plans (writing-plans output)
 │   └── research/                # Platform research docs
 ├── apps/
-│   ├── macos/                   # Swift/SwiftUI native client (imperative shell)
-│   └── api/                     # Express/TypeScript backend (imperative shell)
+│   └── macos/                   # Swift/SwiftUI native client (imperative shell)
 └── packages/
+    ├── api/                     # Express/TypeScript backend (imperative shell)
     ├── core/                    # Pure business logic (functional core) — NO side effects
     └── shared/                  # API contracts, types, templates
 ```
@@ -45,7 +45,7 @@ This project follows the **Functional Core, Imperative Shell** pattern. This is 
 
 ```
 ┌─────────────────────────────────────────────────┐
-│  Imperative Shell (apps/macos, apps/api)        │
+│  Imperative Shell (apps/macos, packages/api)       │
 │  ─ HTTP handlers, Swift UI, file I/O, network   │
 │  ─ Reads from the world, calls core, writes     │
 │    results back to the world                     │
@@ -68,14 +68,14 @@ This project follows the **Functional Core, Imperative Shell** pattern. This is 
 
 2. **Mocks policy by layer.**
    - `packages/core/`: Pure functions tested with real inputs and real expected outputs. Zero mocks and zero test doubles.
-   - `apps/api/` (shell): Unit tests and non-smoke integration tests use explicit mocks/fakes created in test code. Do not embed nullable stub backends in production infrastructure wrappers.
+   - `packages/api/` (shell): Unit tests and non-smoke integration tests use explicit mocks/fakes created in test code. Do not embed nullable stub backends in production infrastructure wrappers.
 
-3. **The shell is thin.** `apps/api/` and `apps/macos/` are imperative shells. They handle I/O (HTTP, file system, screen capture, AI API calls) and delegate all logic to `packages/core/`. The shell follows the **Logic Sandwich**: read from the world → call core → write result back.
+3. **The shell is thin.** `packages/api/` and `apps/macos/` are imperative shells. They handle I/O (HTTP, file system, screen capture, AI API calls) and delegate all logic to `packages/core/`. The shell follows the **Logic Sandwich**: read from the world → call core → write result back.
 
 4. **Dependencies flow inward.** Core depends on nothing. Shared defines contracts. Shell depends on core and shared. Never the reverse.
 
 ```
-apps/api ──→ packages/core ←── apps/macos
+packages/api ──→ packages/core ←── apps/macos
     │              │
     └──→ packages/shared ←──┘
 ```
@@ -88,7 +88,7 @@ apps/api ──→ packages/core ←── apps/macos
 | ------------------ | ------------------------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------- |
 | `packages/core/`   | Business logic, validation, extraction, formatting, scoring, template rendering | **NONE**     | Pure input/output tests. No doubles of any kind.                                              |
 | `packages/shared/` | TypeScript types, API contracts, Zod schemas, constants                         | **NONE**     | Type tests, schema validation tests.                                                          |
-| `apps/api/`        | HTTP handlers, AI provider calls, file I/O, Obsidian writes                     | Yes          | Unit + route integration tests use explicit mocks. Smoke tests use real connectors + real fs. |
+| `packages/api/`    | HTTP handlers, AI provider calls, file I/O, Obsidian writes                     | Yes          | Unit + route integration tests use explicit mocks. Smoke tests use real connectors + real fs. |
 | `apps/macos/`      | SwiftUI, screen capture, audio, keybinds, stealth                               | Yes          | UI tests. Use test-side mocks/fakes for non-smoke flows.                                      |
 
 ### Shell Testing Pattern
@@ -96,7 +96,7 @@ apps/api ──→ packages/core ←── apps/macos
 Infrastructure wrappers encapsulate external I/O and expose production `create()` plus test-focused backend injection:
 
 ```typescript
-// apps/api/src/infra/vision-ai.ts — INFRASTRUCTURE WRAPPER
+// packages/api/src/infra/vision-ai.ts — INFRASTRUCTURE WRAPPER
 export class VisionAI {
   static create(apiKey: string) {
     return new VisionAI(new RealVisionClient(apiKey))
@@ -113,7 +113,7 @@ export class VisionAI {
 ```
 
 ```typescript
-// apps/api/src/routes/capture.test.ts — SOCIABLE TEST
+// packages/api/src/routes/capture.test.ts — SOCIABLE TEST
 const visionAI = VisionAI.fromBackend({
   analyze: async () => ({
     text: 'https://example.com some context',
@@ -142,7 +142,7 @@ export function formatObsidianEntry(
   // returns markdown string. No file I/O.
 }
 
-// apps/api/src/routes/capture.ts — IMPERATIVE SHELL (Logic Sandwich)
+// packages/api/src/routes/capture.ts — IMPERATIVE SHELL (Logic Sandwich)
 import { extractUrls } from '@got-it/core'
 
 app.post('/capture', async (req, res) => {
@@ -396,7 +396,7 @@ pnpm --filter @got-it/api test
 ```
 
 - `packages/core/`: Pure input/output tests. Zero mocks. Zero test doubles.
-- `apps/api/`: Unit and route integration tests use explicit mocks/fakes in test code. Smoke tests use real connectors and real filesystem behavior.
+- `packages/api/`: Unit and route integration tests use explicit mocks/fakes in test code. Smoke tests use real connectors and real filesystem behavior.
 
 ### 4. Spec Conformance (Terminology Lint)
 
@@ -484,7 +484,7 @@ This overrides the superpowers default paths.
 - **Key APIs:** ScreenCaptureKit, AVAudioEngine, NSPanel, NSStatusItem, RegisterEventHotKey
 - **Stealth:** `NSWindow.sharingType = .none`
 
-### Backend API (`apps/api/`)
+### Backend API (`packages/api/`)
 
 - **Runtime:** Node.js
 - **Framework:** Express
@@ -508,7 +508,7 @@ This overrides the superpowers default paths.
 ## Code Style
 
 - **Architecture:** Functional Core, Imperative Shell. Clean Architecture. No exceptions.
-- **Testing:** TDD enforced via `superpowers:test-driven-development`. No mocks in `packages/core/`. Use test-side mocks in `apps/api` unit and non-smoke integration tests.
+- **Testing:** TDD enforced via `superpowers:test-driven-development`. No mocks in `packages/core/`. Use test-side mocks in `packages/api` unit and non-smoke integration tests.
 - **Comments:** Use JSDoc block comments (`/** ... */`) for exported modules, functions, classes, interfaces, and non-obvious behavior.
 - **TypeScript:** `strict: true`. No `any`. No `@ts-ignore`. No `as unknown as`.
 - **Readability:** Avoid inline returns when they reduce clarity. Prefer named intermediate variables and explicit return statements.
@@ -525,7 +525,7 @@ This overrides the superpowers default paths.
 cd packages/core && pnpm test
 
 # Backend (integration tests)
-cd apps/api && pnpm test
+cd packages/api && pnpm test
 
 # Type checking (all packages)
 pnpm typecheck

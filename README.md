@@ -176,7 +176,7 @@ The intended default is a simple structured entry when the user gives no extra s
 GotIt! follows a Functional Core / Imperative Shell architecture.
 
 - `apps/macos` is the native macOS shell for capture, UI, permissions, and window behavior.
-- `apps/api` is the backend shell for AI calls, storage integration, and orchestration.
+- `packages/api` is the backend shell for AI calls, storage integration, and orchestration.
 - `packages/core` contains pure business logic only.
 - `packages/shared` contains contracts, schemas, and shared types.
 

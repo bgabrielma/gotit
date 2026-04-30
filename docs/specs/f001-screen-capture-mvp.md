@@ -68,7 +68,7 @@ Phase order is sequential. Phase boundaries are real validation gates, not inter
 ### 4.1 Layering
 
 ```
-apps/macos (Swift/SwiftUI)        apps/api (Express/TS)
+apps/macos (Swift/SwiftUI)        packages/api (Express/TS)
 ─ NSPanel UI                      ─ HTTP routes
 ─ ScreenCaptureKit                ─ Vision provider wrapper
 ─ AVAudioEngine (mic)             ─ Transcription provider wrapper
@@ -91,13 +91,13 @@ apps/macos (Swift/SwiftUI)        apps/api (Express/TS)
               ─ Domain types: CapturedContent, ChatMessage, Session, SaveRequest, etc.
 ```
 
-Client never calls AI providers directly. Client/plugin writes to Obsidian via Vault API. Client never persists session state. All of that flows through `apps/api`, which delegates pure logic to `packages/core`.
+Client never calls AI providers directly. Client/plugin writes to Obsidian via Vault API. Client never persists session state. All of that flows through `packages/api`, which delegates pure logic to `packages/core`.
 
 ### 4.2 Functional core boundaries
 
 `packages/core` is pure. Functions take inputs (including `now: Date` when needed) and return outputs. No I/O. Tests use real inputs, no doubles.
 
-`apps/api` is the imperative shell. Each external dependency (vision, transcription, SQLite) is wrapped in an infrastructure class with `create()` and `createNull()` per the Nullable pattern.
+`packages/api` is the imperative shell. Each external dependency (vision, transcription, SQLite) is wrapped in an infrastructure class with `create()` and `createNull()` per the Nullable pattern.
 
 `apps/macos` follows the same pattern in Swift. ScreenCaptureKit, AVAudioEngine, file system, and HTTP get infrastructure wrappers with Nullable factories for unit/UI tests.
 
@@ -200,7 +200,7 @@ Reset is a deliberate action. There is no auto-reset based on idle, time, or app
 
 ### 8.1 Default system prompt
 
-Hard-coded in `apps/api/src/prompts/default-system.ts`, exported by env override in F004. The default prompt instructs the model to:
+Hard-coded in `packages/api/src/prompts/default-system.ts`, exported by env override in F004. The default prompt instructs the model to:
 
 1. Extract every URL/link/reference visible on screen, with anchor text and surrounding context.
 2. Return OCR text grouped by visual region.
@@ -233,7 +233,7 @@ Two wrappers (not one) because the two paths have different system prompts, diff
 
 `POST /chat` sends the active session's `messages_tail` window plus the latest screen-capture context. Backend builds the request via pure `buildChatRequest(session, userMessage, latestCapture): ChatRequest` in core.
 
-**Chat persona prompt** is hard-coded at `apps/api/src/prompts/default-chat.ts`. It instructs the assistant to be concise, screen-aware, knowledge-capture-oriented, and to defer formatting decisions to the save layer. F004 makes it user-editable; in F001 it is fixed.
+**Chat persona prompt** is hard-coded at `packages/api/src/prompts/default-chat.ts`. It instructs the assistant to be concise, screen-aware, knowledge-capture-oriented, and to defer formatting decisions to the save layer. F004 makes it user-editable; in F001 it is fixed.
 
 **Multi-modal turn shape:** chat does **not** re-send raw image bytes. It threads the most recent `screen_capture` message's `AnalysisResult` (summary + urls + raw_text) into the chat turn as text context. Image bytes are sent only on the original `/capture` call. This keeps chat cheap and stateless from the model's perspective — vision happens once per capture, chat reasons over the structured analysis.
 
@@ -382,13 +382,13 @@ type AnalysisResult = {
 - Backend uses **SQLite** via a `Store` infrastructure wrapper (Nullable in tests).
 - Tables: `sessions`, `messages`, `analyses`, `save_records`, `images` (path + metadata; bytes on disk under `${GOTIT_DATA_DIR}/images/`), `audio` (same pattern).
 - Single-user MVP: no auth on the API beyond a long-lived `device_id` token issued on first run.
-- Migrations: hand-written SQL files in `apps/api/migrations/`, run on startup.
+- Migrations: hand-written SQL files in `packages/api/migrations/`, run on startup.
 
 Choice rationale: SQLite is sufficient for one device, zero-config, easy to back up. Postgres swap is a wrapper change later.
 
 ### 13.2 Configuration & Tooling
 
-**No hardcoded secrets, model ids, paths, or ports anywhere in source.** All runtime configuration flows through environment variables, loaded by `apps/api` at startup via `dotenv`. The client (`apps/macos`) does not read `.env`; client settings (capture folder, vault choice, hotkeys) live in `UserDefaults`.
+**No hardcoded secrets, model ids, paths, or ports anywhere in source.** All runtime configuration flows through environment variables, loaded by `packages/api` at startup via `dotenv`. The client (`apps/macos`) does not read `.env`; client settings (capture folder, vault choice, hotkeys) live in `UserDefaults`.
 
 **Files at repo root:**
 
@@ -415,7 +415,7 @@ Choice rationale: SQLite is sufficient for one device, zero-config, easy to back
 
 1. `.env.template` (with comment + safe default if any)
 2. This table (§13.2)
-3. The `Config` Zod schema in `apps/api/src/config.ts` (validates env at boot, fails fast on missing required keys)
+3. The `Config` Zod schema in `packages/api/src/config.ts` (validates env at boot, fails fast on missing required keys)
 
 The `Config` module exposes a typed object; routes never read `process.env` directly. This keeps env access at one boundary and gives the validator a single grep target for purity-style checks on configuration leakage.
 
@@ -473,7 +473,7 @@ Per CLAUDE.md quality pipeline.
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `packages/core`   | Pure input/output tests. No doubles. Real inputs, real expected outputs. Includes property tests where natural (e.g., URL extractor against curated samples).                                          |
 | `packages/shared` | Schema validation tests. Type-only tests where useful.                                                                                                                                                 |
-| `apps/api`        | Sociable tests with Nullables. Each route tested against `createApp({ visionAI: VisionAI.createNull(...), transcription: ..., obsidian: ..., store: ... })`. No `jest.mock`.                           |
+| `packages/api`    | Sociable tests with Nullables. Each route tested against `createApp({ visionAI: VisionAI.createNull(...), transcription: ..., obsidian: ..., store: ... })`. No `jest.mock`.                           |
 | `apps/macos`      | Swift unit tests on infrastructure wrappers (Nullable). UI tests on panel behavior. Manual smoke tests for ScreenCaptureKit / AVAudioEngine flows because real capture cannot be mocked at that layer. |
 
 Validator runs the full pipeline (`pnpm validate`) plus purity check on `packages/core` and terminology lint against this spec.
@@ -495,10 +495,10 @@ Validator runs the full pipeline (`pnpm validate`) plus purity check on `package
 - [ ] **Offline mode:** with backend unreachable, panel opens, banner shows, all write actions disabled with tooltips, keybind does not silently capture, last-loaded session view stays read-only; on reconnect, banner clears and actions re-enable. (§14.2)
 - [ ] **Device fallback:** with screen recording permission denied, capture/keybind/Look again all disabled with deep-link tooltip; with no displays attached, capture disabled with tooltip; plugin vault write failures surface actionable remediation. (§14.3)
 - [ ] All `packages/core` tests pass with zero doubles.
-- [ ] `apps/api` tests pass with `createNull()` infra; no `jest.mock`.
+- [ ] `packages/api` tests pass with `createNull()` infra; no `jest.mock`.
 - [ ] Backend reachability + device capability paths covered by Nullable-driven tests.
 - [ ] Husky pre-push gates pass: typecheck, lint, test, purity.
-- [ ] **Configuration:** `.nvmrc`, `.env.template`, and `apps/api/src/config.ts` exist; backend boots from a `.env` populated from the template; `process.env` is read only inside `config.ts`; backend fails fast with a clear error if `ANTHROPIC_API_KEY` is missing. (§13.2)
+- [ ] **Configuration:** `.nvmrc`, `.env.template`, and `packages/api/src/config.ts` exist; backend boots from a `.env` populated from the template; `process.env` is read only inside `config.ts`; backend fails fast with a clear error if `ANTHROPIC_API_KEY` is missing. (§13.2)
 
 **Quality gate:** ≥7/10. Scoring: functionality 30, code quality 20, test coverage 20, spec conformance 20, lint+types 10.
 
@@ -511,7 +511,7 @@ Validator runs the full pipeline (`pnpm validate`) plus purity check on `package
 - [ ] Esc cancels recording without sending.
 - [ ] Mic permission denial shows actionable message.
 - [ ] **Device fallback:** no input device → mic button disabled with tooltip; permission denied → lock icon + System Settings deep link; offline → mic button disabled (cannot send transcript). (§14.2, §14.3)
-- [ ] `apps/api` transcription tested via `Transcription.createNull()`; no `jest.mock`.
+- [ ] `packages/api` transcription tested via `Transcription.createNull()`; no `jest.mock`.
 - [ ] Husky pre-push gates pass.
 
 **Quality gate:** ≥7/10. Same scoring rubric as 1a.

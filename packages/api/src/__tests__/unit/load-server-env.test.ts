@@ -25,17 +25,17 @@ afterEach(() => {
 
 describe('getServerEnvPaths', () => {
   it('includes the repo-root .env derived from the API source module path', () => {
-    const moduleUrl = pathToFileURL('/repo/apps/api/src/config.ts').href
-    const envPaths = getServerEnvPaths('/repo/apps/api', moduleUrl)
+    const moduleUrl = pathToFileURL('/repo/packages/api/src/config.ts').href
+    const envPaths = getServerEnvPaths('/repo/packages/api', moduleUrl)
     expect(envPaths).toContain('/repo/.env')
   })
 })
 
 describe('loadServerConfig', () => {
-  it('loads repo-root .env when current working directory is apps/api', () => {
+  it('loads repo-root .env when current working directory is packages/api', () => {
     const repoDir = mkdtempSync(join(tmpdir(), 'gotit-env-'))
     try {
-      const apiDir = resolve(repoDir, 'apps/api')
+      const apiDir = resolve(repoDir, 'packages/api')
       mkdirSync(apiDir, { recursive: true })
       const srcFile = resolve(apiDir, 'src/config.ts')
       writeFileSync(
