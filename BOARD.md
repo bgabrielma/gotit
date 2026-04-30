@@ -6,23 +6,31 @@
 
 ## In Progress
 
-_None yet — first feature pending spec._
+- [ ] **F001** Screen Capture + Chat MVP — Core functionality: screenshot analysis, keybind-triggered one-shot vision, invoke-to-open chat panel, chat-driven screen refresh, floating chat panel, backend AI analysis, persistent active session, append-to-current-chat behavior, reset context, basic history tab, basic text chat, basic Obsidian save, push-to-talk voice messages, and basic "Listen to this" system-audio capture
+  - Depends on: _none_
+  - Parent spec: `docs/specs/f001-screen-capture-mvp.md` ✓
+  - Phase 1a Plan A (backend): `docs/plans/f001-phase-1a-backend.md` ✓ **complete, validated 9.4/10 on 2026-04-29**
+  - Phase 1a Plan B (macOS client): `docs/specs/f001-phase-1a-macos-client.md` ✓ — implementation plan pending (`docs/plans/f001-phase-1a-macos-client.md` to be written next)
+  - Phase 1b (mic), 1c (Listen), 1d (history): not started
 
 ## Planned (Next Sprint)
 
-- [ ] **F001** Screen Capture + Chat MVP — Core functionality: screenshot analysis, keybind-triggered one-shot vision, invoke-to-open chat panel, chat-driven screen refresh, floating chat panel, backend AI analysis, persistent active session, append-to-current-chat behavior, reset context, basic history tab, basic text chat, basic Obsidian save, push-to-talk voice messages, and basic "Listen to this" system-audio capture
-  - Depends on: _none_
-  - Spec: `docs/specs/f001-screen-capture-mvp.md` _(pending)_
+_F014 is the next feature once F001 Phase 1a Plan B implementation begins. See Backlog._
 
 ## Backlog (Prioritized)
 
-- [ ] **F013** Obsidian Plugin Delivery — Real Obsidian plugin (TypeScript, Obsidian plugin API) plus SSE delivery from the backend. Replaces the Phase 1a direct file-write path with a proper Vault API write. Unlocks cross-client reuse (F007) and proper indexing/sync. Phase 1a chooses file-write delivery as a deliberate stop-gap; F013 is the durable answer and is sequenced **immediately after F001 MVP completes, ahead of F002**.
-  - Depends on: F001
+- [ ] **F014** Postgres Storage Refactor (docker-compose) — Replace the SQLite `Store` infrastructure wrapper in `apps/api` with Postgres provisioned via `docker-compose`. Small, scoped refactor: swap the wrapper implementation, port the migration files (`apps/api/migrations/`) to Postgres dialect, add a `docker-compose.yml` for local dev, update `.env.template` (e.g., `GOTIT_DATABASE_URL`). No product behavior change. **Top priority once F001 Phase 1a Plan B starts** — done before F013 to avoid migrating a Postgres-shaped dataset twice.
+  - Depends on: F001 Phase 1a Plan B (in progress)
+  - Spec: `docs/specs/f014-postgres-storage-refactor.md` _(pending)_
+  - Introduces: `docker-compose.yml`, Postgres `Store` adapter (still behind same protocol), Postgres-dialect migrations, env var changes.
+
+- [ ] **F013** Obsidian Plugin Delivery — Real Obsidian plugin (TypeScript, Obsidian plugin API) plus SSE delivery from the backend. Replaces the Phase 1a direct file-write path with a proper Vault API write. Unlocks cross-client reuse (F007) and proper indexing/sync. Phase 1a chooses file-write delivery as a deliberate stop-gap; F013 is the durable answer and is sequenced **after F014, ahead of F002**.
+  - Depends on: F001, F014
   - Spec: `docs/specs/f013-obsidian-plugin-delivery.md` _(pending)_
   - Introduces: new package `apps/obsidian-plugin/` (TS), backend endpoints `GET /saves/stream` (SSE) + `POST /saves/:id/ack`, `pending|delivered|failed` state on `save_record`, pairing flow.
 
 - [ ] **F002** Advanced Obsidian Workflows — richer vault configuration, routing rules, frontmatter controls, and multi-step save behavior beyond the basic MVP save flow
-  - Depends on: F001, F013
+  - Depends on: F001, F014, F013
   - Spec: `docs/specs/f002-advanced-obsidian-workflows.md` _(pending)_
 
 - [ ] **F003** Advanced Audio Workflows — device selection, richer transcript UX, longer-running capture controls, and refined audio session behavior beyond the MVP chat inputs
@@ -57,7 +65,8 @@ _None yet — first feature pending spec._
 
 ```mermaid
 graph LR
-    F001[F001: Screen Capture MVP] --> F013[F013: Obsidian Plugin Delivery]
+    F001[F001: Screen Capture MVP] --> F014[F014: Postgres Refactor]
+    F014 --> F013[F013: Obsidian Plugin Delivery]
     F013 --> F002[F002: Advanced Obsidian]
     F001 --> F003[F003: Advanced Audio]
     F001 --> F004[F004: System Prompt UI]
