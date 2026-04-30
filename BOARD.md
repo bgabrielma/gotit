@@ -16,8 +16,13 @@ _None yet — first feature pending spec._
 
 ## Backlog (Prioritized)
 
-- [ ] **F002** Advanced Obsidian Workflows — richer vault configuration, routing rules, frontmatter controls, and multi-step save behavior beyond the basic MVP save flow
+- [ ] **F013** Obsidian Plugin Delivery — Real Obsidian plugin (TypeScript, Obsidian plugin API) plus SSE delivery from the backend. Replaces the Phase 1a direct file-write path with a proper Vault API write. Unlocks cross-client reuse (F007) and proper indexing/sync. Phase 1a chooses file-write delivery as a deliberate stop-gap; F013 is the durable answer and is sequenced **immediately after F001 MVP completes, ahead of F002**.
   - Depends on: F001
+  - Spec: `docs/specs/f013-obsidian-plugin-delivery.md` _(pending)_
+  - Introduces: new package `apps/obsidian-plugin/` (TS), backend endpoints `GET /saves/stream` (SSE) + `POST /saves/:id/ack`, `pending|delivered|failed` state on `save_record`, pairing flow.
+
+- [ ] **F002** Advanced Obsidian Workflows — richer vault configuration, routing rules, frontmatter controls, and multi-step save behavior beyond the basic MVP save flow
+  - Depends on: F001, F013
   - Spec: `docs/specs/f002-advanced-obsidian-workflows.md` _(pending)_
 
 - [ ] **F003** Advanced Audio Workflows — device selection, richer transcript UX, longer-running capture controls, and refined audio session behavior beyond the MVP chat inputs
@@ -52,7 +57,8 @@ _None yet — first feature pending spec._
 
 ```mermaid
 graph LR
-    F001[F001: Screen Capture MVP] --> F002[F002: Obsidian]
+    F001[F001: Screen Capture MVP] --> F013[F013: Obsidian Plugin Delivery]
+    F013 --> F002[F002: Advanced Obsidian]
     F001 --> F003[F003: Advanced Audio]
     F001 --> F004[F004: System Prompt UI]
     F001 --> F005[F005: Stealth Rendering]

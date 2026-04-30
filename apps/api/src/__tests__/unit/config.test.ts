@@ -47,6 +47,28 @@ describe('loadConfig', () => {
     expect(cfg.openaiApiKey).toBe('')
   })
 
+  it('accepts ollama connector without OPENAI_API_KEY', () => {
+    const cfg = loadConfig({
+      GOTIT_LLM_CONNECTOR: 'ollama',
+      GOTIT_LLM_BASE_URL: 'http://localhost:11434/v1',
+    })
+    expect(cfg.llmConnector).toBe('ollama')
+    expect(cfg.llmBaseUrl).toBe('http://localhost:11434/v1')
+    expect(cfg.openaiApiKey).toBe('')
+  })
+
+  it('accepts external connector without OPENAI_API_KEY', () => {
+    const cfg = loadConfig({
+      GOTIT_LLM_CONNECTOR: 'external',
+      GOTIT_LLM_BASE_URL: 'https://llm.example.com/v1',
+      GOTIT_LLM_API_KEY: 'external-key',
+    })
+    expect(cfg.llmConnector).toBe('external')
+    expect(cfg.llmBaseUrl).toBe('https://llm.example.com/v1')
+    expect(cfg.llmApiKey).toBe('external-key')
+    expect(cfg.openaiApiKey).toBe('')
+  })
+
   it('throws when local connector is missing GOTIT_LLM_BASE_URL', () => {
     expect(() =>
       loadConfig({

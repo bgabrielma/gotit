@@ -3777,6 +3777,8 @@ git reset --hard HEAD~1
 
 ## Plan Amendments (2026-04-29)
 
+This section is validator-facing and supersedes earlier task snippets where they conflict with current code. The original task bodies remain as implementation history; validation for completed Plan A should evaluate the final backend against these amendments plus the F001 Phase 1a backend scope.
+
 Post-implementation adjustments applied in this branch:
 
 - AI provider wiring was simplified from Anthropic to OpenAI SDK (`openai`) for both chat and vision connectors.
@@ -3792,6 +3794,10 @@ Post-implementation adjustments applied in this branch:
 - API tests were reorganized to Jest-style folders:
   - `apps/api/src/__tests__/unit/**`
   - `apps/api/src/__tests__/integration/**`
+- Nullable test seams were simplified from `createNull()` on every infrastructure wrapper to explicit `fromBackend(...)` backend injection for `VisionAI`, `ChatAI`, and `ObsidianWriter`. `Store.createNull()` remains for the in-memory store. This preserves the no-production-stub rule and keeps test doubles explicit in test code.
+- API tests may use Vitest spies (`vi.fn`) in test helpers to assert shell interactions. The banned pattern is module-level mocking of production dependencies (`jest.mock`, `vi.mock`, SDK mocks), not test-local function spies passed through explicit backend injection.
+- `POST /save` is intentionally implemented as a backend vault write for Plan A's local dev slice. It returns the written `vault_path` plus `save_record_id`, and appends a `save_record` to the active session. This differs from the longer-term client/plugin Vault API handoff in the F001 product spec and should be reconciled before Plan B/Obsidian client integration.
+- `server.ts` reads `process.env` only at the executable entrypoint to call `loadConfig(process.env)`. Route/config logic still receives typed `Config`; there are no scattered env reads in production route or infrastructure code. Live smoke tests may also call `loadConfig(process.env)` because they are executable validation harnesses, not production runtime logic.
 - Live service validation was split into explicit command:
   - `pnpm --filter @got-it/api run test:live`
   - Current blocker: API billing/quota availability on `platform.openai.com`.
@@ -3813,28 +3819,34 @@ Additional post-plan fixes applied on 2026-04-29 (validator traceability):
 - Live test debug output was intentionally reduced to a compact preview object (`context_kind`, `summary`, `urls`, `tags`, `relevant_info`, `keywords_context`) for faster human validation.
 - ESLint active config (`eslint.config.cjs`, flat config) now allows `console.debug` only for `apps/api/src/**/__tests__/**/*.live.test.ts`; global rule remains strict elsewhere.
 
+Post-validation action items recorded from 2026-04-30 revalidation:
+
+- Update `docs/specs/f001-screen-capture-mvp.md` before final F001 validation so provider terminology, env names, Nullable/backend-injection language, and save delivery semantics match the accepted Plan A backend behavior or explicitly defer reconciliation to Plan B.
+- Re-run the Plan A validator after the spec reconciliation so spec conformance is judged against a single source of truth instead of historical Anthropic/client-vault wording.
+- Keep `pnpm --filter @got-it/api run test:live` free of focused tests (`it.only`, `describe.only`) so live smoke validation runs every smoke case when credentials and quota are available.
+
 ---
 
 ## Self-Review
 
 **Spec coverage** (against §16.1 Phase 1a sprint contract):
 
-| Sprint criterion                                                                  | Implementing task                                               |
-| --------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| Keybind triggers screen capture, panel <3s                                        | Task 24 (`POST /capture`) — client portion in Plan B            |
-| Screenshot drag-in updates active session                                         | Task 24 (server side) — client UI in Plan B                     |
-| Direct invoke opens panel without capturing                                       | (client only) — Plan B                                          |
-| Text chat round-trips through backend                                             | Task 25                                                         |
-| "Look again" appends to active session                                            | Task 24 (same `POST /capture` route)                            |
-| Reset starts new session, old persists                                            | Task 23 (`POST /sessions`)                                      |
-| Save writes Markdown to vault folder with default template                        | Tasks 12, 20, 26                                                |
-| Save instruction overrides body format                                            | Tasks 13, 26                                                    |
-| Offline mode                                                                      | (client only) — Plan B; server provides `GET /health` (Task 22) |
-| Device fallback                                                                   | (client only) — Plan B                                          |
-| Configuration: `.nvmrc`, `.env.template`, `config.ts`, no scattered `process.env` | Tasks 1, 16, 27                                                 |
-| `packages/core` tests pass with zero doubles                                      | Tasks 8-14                                                      |
-| `apps/api` tests pass with `createNull()`; no `jest.mock`                         | Tasks 17-26                                                     |
-| Husky pre-push gates pass                                                         | Tasks 3, 4, 28                                                  |
+| Sprint criterion                                                               | Implementing task                                               |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| Keybind triggers screen capture, panel <3s                                     | Task 24 (`POST /capture`) — client portion in Plan B            |
+| Screenshot drag-in updates active session                                      | Task 24 (server side) — client UI in Plan B                     |
+| Direct invoke opens panel without capturing                                    | (client only) — Plan B                                          |
+| Text chat round-trips through backend                                          | Task 25                                                         |
+| "Look again" appends to active session                                         | Task 24 (same `POST /capture` route)                            |
+| Reset starts new session, old persists                                         | Task 23 (`POST /sessions`)                                      |
+| Save writes Markdown to vault folder with default template                     | Tasks 12, 20, 26; amended backend-write behavior above          |
+| Save instruction overrides body format                                         | Tasks 13, 26                                                    |
+| Offline mode                                                                   | (client only) — Plan B; server provides `GET /health` (Task 22) |
+| Device fallback                                                                | (client only) — Plan B                                          |
+| Configuration: `.nvmrc`, `.env.template`, `config.ts`, controlled env boundary | Tasks 1, 16, 27; entrypoint/test harness exception above        |
+| `packages/core` tests pass with zero doubles                                   | Tasks 8-14                                                      |
+| `apps/api` tests pass with explicit injected backends; no module-level mocks   | Tasks 17-26; amended `fromBackend(...)` test seam above         |
+| Husky pre-push gates pass                                                      | Tasks 3, 4, 28                                                  |
 
 Server-side coverage of Phase 1a is complete. Client-side criteria are explicitly deferred to Plan B and not gaps in this plan.
 

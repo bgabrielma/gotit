@@ -74,7 +74,7 @@ describe('Obsidian real integration', () => {
     ensureCleanDir(SMOKE_DATA_DIR)
   })
 
-  it.only('captures a screenshot, chats, saves to vault, file has valid content', async () => {
+  it('captures a screenshot, chats, saves to vault, file has valid content', async () => {
     const { app, token } = await setupSmokeApp()
 
     const captureRes = await request(app)

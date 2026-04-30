@@ -8,10 +8,10 @@ export type LLMRuntimeConfig = {
 
 export class LLMConnectorConfig {
   static fromConfig(cfg: Config): LLMRuntimeConfig {
-    if (cfg.llmConnector === 'local') {
+    if (cfg.llmConnector !== 'openai') {
       return {
         model: cfg.openaiModel,
-        apiKey: cfg.llmApiKey || 'ollama',
+        apiKey: cfg.llmApiKey || cfg.llmConnector,
         baseURL: cfg.llmBaseUrl,
       }
     }
