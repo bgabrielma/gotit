@@ -27,6 +27,7 @@ services:
       - .env
     environment:
       GOTIT_DATABASE_URL: ${GOTIT_DATABASE_URL:-postgres://gotit:gotit@postgres:5432/gotit}
+      GOTIT_LLM_BASE_URL: http://host.docker.internal:11434/v1
       GOTIT_DATA_DIR: ${GOTIT_DATA_DIR:-/app/data}
       GOTIT_VAULT_PATH: /vault
       PORT: ${PORT:-3000}
