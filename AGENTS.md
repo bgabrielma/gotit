@@ -66,9 +66,9 @@ This project follows the **Functional Core, Imperative Shell** pattern. This is 
 
 1. **`packages/core/` is pure.** Every function takes data in and returns data out. No `fetch`, no `fs`, no database calls, no environment variables, no `Date.now()`, no randomness. If a function needs the current time, it receives it as a parameter.
 
-2. **No mocks. No mock frameworks. Use Nullables.** Following James Shore's [Testing Without Mocks](https://www.jamesshore.com/v2/projects/nullables/testing-without-mocks) pattern:
-   - `packages/core/`: Pure functions tested with real inputs and real expected outputs. Zero test doubles of any kind. If you need a mock, the code is impure and belongs in the shell.
-   - `apps/api/` (shell): Infrastructure wrappers use the **Nullable pattern** — production code with a `createNull()` factory that disables external I/O. No mock frameworks (jest.mock, sinon, etc.). Nullables are real code with an off-switch, not test doubles.
+2. **Mocks policy by layer.**
+   - `packages/core/`: Pure functions tested with real inputs and real expected outputs. Zero mocks and zero test doubles.
+   - `apps/api/` (shell): Unit tests and non-smoke integration tests use explicit mocks/fakes created in test code. Do not embed nullable stub backends in production infrastructure wrappers.
 
 3. **The shell is thin.** `apps/api/` and `apps/macos/` are imperative shells. They handle I/O (HTTP, file system, screen capture, AI API calls) and delegate all logic to `packages/core/`. The shell follows the **Logic Sandwich**: read from the world → call core → write result back.
 
@@ -84,16 +84,16 @@ apps/api ──→ packages/core ←── apps/macos
 
 ### What lives where
 
-| Package            | Contains                                                                        | Side Effects | Testing Strategy                                                               |
-| ------------------ | ------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------ |
-| `packages/core/`   | Business logic, validation, extraction, formatting, scoring, template rendering | **NONE**     | Pure input/output tests. No doubles of any kind.                               |
-| `packages/shared/` | TypeScript types, API contracts, Zod schemas, constants                         | **NONE**     | Type tests, schema validation tests.                                           |
-| `apps/api/`        | HTTP handlers, AI provider calls, file I/O, Obsidian writes                     | Yes          | Sociable tests with Nullables. Infrastructure wrappers provide `createNull()`. |
-| `apps/macos/`      | SwiftUI, screen capture, audio, keybinds, stealth                               | Yes          | UI tests. Swift infrastructure wrappers follow same Nullable pattern.          |
+| Package            | Contains                                                                        | Side Effects | Testing Strategy                                                                              |
+| ------------------ | ------------------------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------- |
+| `packages/core/`   | Business logic, validation, extraction, formatting, scoring, template rendering | **NONE**     | Pure input/output tests. No doubles of any kind.                                              |
+| `packages/shared/` | TypeScript types, API contracts, Zod schemas, constants                         | **NONE**     | Type tests, schema validation tests.                                                          |
+| `apps/api/`        | HTTP handlers, AI provider calls, file I/O, Obsidian writes                     | Yes          | Unit + route integration tests use explicit mocks. Smoke tests use real connectors + real fs. |
+| `apps/macos/`      | SwiftUI, screen capture, audio, keybinds, stealth                               | Yes          | UI tests. Use test-side mocks/fakes for non-smoke flows.                                      |
 
-### The Nullable Pattern (Shell Testing)
+### Shell Testing Pattern
 
-Infrastructure wrappers encapsulate external I/O and provide a Nullable factory:
+Infrastructure wrappers encapsulate external I/O and expose production `create()` plus test-focused backend injection:
 
 ```typescript
 // apps/api/src/infra/vision-ai.ts — INFRASTRUCTURE WRAPPER
@@ -102,10 +102,8 @@ export class VisionAI {
     return new VisionAI(new RealVisionClient(apiKey))
   }
 
-  static createNull(responses?: ConfigurableResponses) {
-    return new VisionAI(new EmbeddedStub(responses))
-    // EmbeddedStub is production code, not a test helper.
-    // It lives in this file, ships in production, enables dry-run mode.
+  static fromBackend(backend: VisionBackend) {
+    return new VisionAI(backend)
   }
 
   async analyze(image: Buffer): Promise<AnalysisResult> {
@@ -116,10 +114,13 @@ export class VisionAI {
 
 ```typescript
 // apps/api/src/routes/capture.test.ts — SOCIABLE TEST
-const visionAI = VisionAI.createNull({
-  analysis: { text: 'https://example.com some context', urls: ['https://example.com'] },
+const visionAI = VisionAI.fromBackend({
+  analyze: async () => ({
+    text: 'https://example.com some context',
+    urls: ['https://example.com'],
+  }),
 })
-const app = createApp({ visionAI }) // real app, nullable infra
+const app = createApp({ visionAI }) // real app, mocked dependency
 const res = await request(app).post('/capture').send({ image: testImage })
 expect(res.body.urls).toEqual(['https://example.com'])
 ```
@@ -387,15 +388,15 @@ pnpm --filter @got-it/api lint
 
 ESLint with strict rules. No warnings allowed (warnings are errors in CI).
 
-### 3. Tests (TDD — no mocks, Nullables for shell)
+### 3. Tests (TDD — mocks in shell, none in core)
 
 ```bash
 pnpm --filter @got-it/core test
 pnpm --filter @got-it/api test
 ```
 
-- `packages/core/`: Pure input/output tests. Zero mocks. Zero test doubles. If a test needs a mock, the code is in the wrong package.
-- `apps/api/`: Sociable tests using the Nullable pattern. Infrastructure wrappers provide `createNull()` factories. No mock frameworks (`jest.mock`, `sinon`, etc.). See "The Nullable Pattern" section above.
+- `packages/core/`: Pure input/output tests. Zero mocks. Zero test doubles.
+- `apps/api/`: Unit and route integration tests use explicit mocks/fakes in test code. Smoke tests use real connectors and real filesystem behavior.
 
 ### 4. Spec Conformance (Terminology Lint)
 
@@ -495,7 +496,7 @@ This overrides the superpowers default paths.
 
 - **Language:** TypeScript
 - **Purpose:** Pure business logic. URL extraction, content formatting, template rendering, validation, scoring.
-- **Rules:** No I/O. No side effects. No mocks. Input → output.
+- **Rules:** No I/O. No side effects. Input → output.
 
 ### Shared (`packages/shared/`)
 
@@ -507,7 +508,8 @@ This overrides the superpowers default paths.
 ## Code Style
 
 - **Architecture:** Functional Core, Imperative Shell. Clean Architecture. No exceptions.
-- **Testing:** TDD enforced via `superpowers:test-driven-development`. No mocks in `packages/core/`. Integration tests at boundaries in `apps/`.
+- **Testing:** TDD enforced via `superpowers:test-driven-development`. No mocks in `packages/core/`. Use test-side mocks in `apps/api` unit and non-smoke integration tests.
+- **Comments:** Use JSDoc block comments (`/** ... */`) for exported modules, functions, classes, interfaces, and non-obvious behavior.
 - **TypeScript:** `strict: true`. No `any`. No `@ts-ignore`. No `as unknown as`.
 - **Readability:** Avoid inline returns when they reduce clarity. Prefer named intermediate variables and explicit return statements.
 - **Swift:** Follow Apple's Swift API Design Guidelines.
@@ -573,7 +575,7 @@ The full quality pipeline runs before any code reaches the remote:
 
 1. **Type checking** — all packages, strict mode
 2. **Linting** — zero warnings (warnings are errors)
-3. **Tests** — all packages, TDD, no mocks in core, Nullables in shell
+3. **Tests** — all packages, TDD, no mocks in core, explicit mocks/fakes in shell unit and non-smoke integration tests
 4. **Purity check** — verify `packages/core/` has no side effects
 
 If any step fails, the push is blocked. This is non-negotiable backpressure.

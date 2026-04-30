@@ -11,43 +11,47 @@ export interface ObsidianBackend {
   listFolder(args: ListFolderArgs): Promise<Set<string>>
 }
 
-export type NullableObsidianConfig = {
-  existing?: Record<string, Set<string>>
-  writeFailure?: Error
-}
-
+/**
+ * Infrastructure wrapper for Obsidian vault file operations.
+ * Use {@link ObsidianWriter.create} in production and {@link ObsidianWriter.fromBackend} in tests.
+ */
 export class ObsidianWriter {
-  readonly writes: WriteArgs[] = []
+  private constructor(private readonly backend: ObsidianBackend) {}
 
-  private constructor(
-    private readonly backend: ObsidianBackend,
-    private readonly trackingStub?: StubBackend
-  ) {}
-
+  /**
+   * Creates a writer backed by the local filesystem.
+   */
   static create(): ObsidianWriter {
-    const backend = new RealBackend()
+    const backend = new FilesystemObsidianBackend()
     return new ObsidianWriter(backend)
   }
 
-  static createNull(config: NullableObsidianConfig = {}): ObsidianWriter {
-    const stub = new StubBackend(config)
-    return new ObsidianWriter(stub, stub)
+  /**
+   * Creates a writer from an injected backend.
+   */
+  static fromBackend(backend: ObsidianBackend): ObsidianWriter {
+    return new ObsidianWriter(backend)
   }
 
+  /**
+   * Writes a markdown file to the configured vault path.
+   */
   async write(args: WriteArgs): Promise<WriteResult> {
-    const result = await this.backend.write(args)
-    if (this.trackingStub) {
-      this.writes.push({ ...args })
-    }
-    return result
+    return this.backend.write(args)
   }
 
+  /**
+   * Lists file names under a folder in the configured vault.
+   */
   listFolder(args: ListFolderArgs): Promise<Set<string>> {
     return this.backend.listFolder(args)
   }
 }
 
-class RealBackend implements ObsidianBackend {
+class FilesystemObsidianBackend implements ObsidianBackend {
+  /**
+   * Writes atomically using a temporary file + rename.
+   */
   async write({ vaultPath, relativePath, contents }: WriteArgs): Promise<WriteResult> {
     const fullPath = join(vaultPath, relativePath)
     await mkdir(dirname(fullPath), { recursive: true })
@@ -57,6 +61,9 @@ class RealBackend implements ObsidianBackend {
     return { fullPath }
   }
 
+  /**
+   * Reads directory contents and returns a set of file names.
+   */
   async listFolder({ vaultPath, relativeFolder }: ListFolderArgs): Promise<Set<string>> {
     try {
       const entries = await readdir(join(vaultPath, relativeFolder))
@@ -64,21 +71,5 @@ class RealBackend implements ObsidianBackend {
     } catch {
       return new Set()
     }
-  }
-}
-
-class StubBackend implements ObsidianBackend {
-  constructor(private readonly config: NullableObsidianConfig) {}
-
-  async write({ vaultPath, relativePath }: WriteArgs): Promise<WriteResult> {
-    if (this.config.writeFailure) {
-      throw this.config.writeFailure
-    }
-    const fullPath = join(vaultPath, relativePath)
-    return { fullPath }
-  }
-
-  async listFolder({ relativeFolder }: ListFolderArgs): Promise<Set<string>> {
-    return this.config.existing?.[relativeFolder] ?? new Set()
   }
 }

@@ -1,34 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import request from 'supertest'
-import { createApp } from '../../../app.js'
-import { Store } from '../../../infra/store.js'
-import { VisionAI } from '../../../infra/vision-ai.js'
-import { ChatAI } from '../../../infra/chat-ai.js'
-import { ObsidianWriter } from '../../../infra/obsidian-writer.js'
+import { createChatAIMock, setupAuthedApp } from '../../helper.js'
 
-function makeApp(chatResponse = 'reply') {
-  return createApp({
-    store: Store.createNull(),
-    visionAI: VisionAI.createNull(),
-    chatAI: ChatAI.createNull({ responses: [chatResponse] }),
-    obsidianWriter: ObsidianWriter.createNull(),
-    visionPrompt: 'p',
-    chatPersonaPrompt: 'persona',
-    vaultPath: '/tmp/vault',
-    captureFolder: 'GotIt!',
-    dataDir: '/tmp/data',
-    version: 'test',
+/**
+ * Creates an authenticated app/session pair for chat route tests.
+ */
+async function setup(chatResponse = 'reply') {
+  const chatMock = createChatAIMock({ responses: [chatResponse] })
+  return setupAuthedApp({
+    chatAI: chatMock.instance,
   })
 }
 
-async function setup(chatResponse = 'reply') {
-  const app = makeApp(chatResponse)
-  const deviceRes = await request(app).post('/device').send({ install_id: 'i' })
-  const token = deviceRes.body.token as string
-  await request(app).post('/sessions').set('Authorization', `Bearer ${token}`)
-  return { app, token }
-}
-
+/**
+ * Integration coverage for chat route behavior.
+ */
 describe('POST /chat', () => {
   it('appends user message, returns assistant reply', async () => {
     const { app, token } = await setup('hello back')

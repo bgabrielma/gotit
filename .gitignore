@@ -6,3 +6,5 @@ build/
 *.xcuserdata
 .env
 .env.local
+tmp/*
+!tmp/.gitkeep

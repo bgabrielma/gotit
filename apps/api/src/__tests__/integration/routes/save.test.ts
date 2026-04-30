@@ -1,11 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import request from 'supertest'
-import { createApp } from '../../../app.js'
-import { Store } from '../../../infra/store.js'
-import { VisionAI } from '../../../infra/vision-ai.js'
-import { ChatAI } from '../../../infra/chat-ai.js'
-import { ObsidianWriter } from '../../../infra/obsidian-writer.js'
+import {
+  createChatAIMock,
+  createObsidianWriterMock,
+  createSession,
+  createTestApp,
+  createVisionAIMock,
+  registerDevice,
+  setupAuthedApp,
+  tmpPath,
+} from '../../helper.js'
 
+/**
+ * Default analysis payload used in save route integration tests.
+ */
 const sampleAnalysis = {
   raw_text: '',
   urls: [{ href: 'https://example.com' }],
@@ -14,28 +22,38 @@ const sampleAnalysis = {
   summary: 'A page about A',
 }
 
+/**
+ * Builds an app with mocked dependencies for save route tests.
+ */
 function makeApp(opts: { chatResponses?: string[]; writeFailure?: Error } = {}) {
-  return createApp({
-    store: Store.createNull(),
-    visionAI: VisionAI.createNull({ analysis: sampleAnalysis }),
-    chatAI: ChatAI.createNull({ responses: opts.chatResponses ?? ['Notes about the page.'] }),
-    obsidianWriter: opts.writeFailure
-      ? ObsidianWriter.createNull({ writeFailure: opts.writeFailure })
-      : ObsidianWriter.createNull(),
-    visionPrompt: 'p',
-    chatPersonaPrompt: 'p',
-    vaultPath: '/tmp/vault',
-    captureFolder: 'GotIt!',
-    dataDir: '/tmp/data',
-    version: 'test',
+  const visionMock = createVisionAIMock({ analysis: sampleAnalysis })
+  const chatMock = createChatAIMock({ responses: opts.chatResponses ?? ['Notes about the page.'] })
+  const writerMock = createObsidianWriterMock(
+    opts.writeFailure ? { writeFailure: opts.writeFailure } : {}
+  )
+
+  return createTestApp({
+    visionAI: visionMock.instance,
+    chatAI: chatMock.instance,
+    obsidianWriter: writerMock.instance,
   })
 }
 
+/**
+ * Creates an authenticated app and performs one capture before save assertions.
+ */
 async function setupWithCapture(opts: Parameters<typeof makeApp>[0] = {}) {
-  const app = makeApp(opts)
-  const deviceRes = await request(app).post('/device').send({ install_id: 'i' })
-  const token = deviceRes.body.token as string
-  await request(app).post('/sessions').set('Authorization', `Bearer ${token}`)
+  const visionMock = createVisionAIMock({ analysis: sampleAnalysis })
+  const chatMock = createChatAIMock({ responses: opts.chatResponses ?? ['Notes about the page.'] })
+  const writerMock = createObsidianWriterMock(
+    opts.writeFailure ? { writeFailure: opts.writeFailure } : {}
+  )
+
+  const { app, token } = await setupAuthedApp({
+    visionAI: visionMock.instance,
+    chatAI: chatMock.instance,
+    obsidianWriter: writerMock.instance,
+  })
   await request(app)
     .post('/capture')
     .set('Authorization', `Bearer ${token}`)
@@ -49,7 +67,7 @@ describe('POST /save', () => {
     const { app, token } = await setupWithCapture()
     const res = await request(app).post('/save').set('Authorization', `Bearer ${token}`).send({})
     expect(res.status).toBe(201)
-    expect(res.body.vault_path.startsWith('/tmp/vault/GotIt!/')).toBe(true)
+    expect(res.body.vault_path.startsWith(`${tmpPath('vault')}/GotIt!/`)).toBe(true)
     expect(res.body.vault_path.endsWith('.md')).toBe(true)
     expect(res.body.save_record_id).toBeTruthy()
   })
@@ -64,15 +82,14 @@ describe('POST /save', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ instruction: 'save as a code snippet' })
     expect(res.status).toBe(201)
-    expect(res.body.vault_path.startsWith('/tmp/vault/GotIt!/')).toBe(true)
+    expect(res.body.vault_path.startsWith(`${tmpPath('vault')}/GotIt!/`)).toBe(true)
     expect(res.body.save_record_id).toBeTruthy()
   })
 
   it('returns 422 when active session has no capture yet', async () => {
     const app = makeApp()
-    const deviceRes = await request(app).post('/device').send({ install_id: 'i' })
-    const token = deviceRes.body.token as string
-    await request(app).post('/sessions').set('Authorization', `Bearer ${token}`)
+    const token = await registerDevice(app, 'i')
+    await createSession(app, token)
     const res = await request(app).post('/save').set('Authorization', `Bearer ${token}`).send({})
     expect(res.status).toBe(422)
   })

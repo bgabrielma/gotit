@@ -1,32 +1,44 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ObsidianWriter } from '../../../infra/obsidian-writer.js'
 
-describe('ObsidianWriter (Nullable)', () => {
-  it('records writes for inspection', async () => {
-    const w = ObsidianWriter.createNull()
-    const result = await w.write({
+/**
+ * Unit tests for ObsidianWriter using injected mocked backends.
+ */
+describe('ObsidianWriter', () => {
+  it('delegates writes to the configured backend', async () => {
+    const write = vi.fn(async () => ({ fullPath: '/tmp/vault/GotIt!/file.md' }))
+    const listFolder = vi.fn(async () => new Set<string>())
+    const writer = ObsidianWriter.fromBackend({ write, listFolder })
+
+    const result = await writer.write({
       vaultPath: '/tmp/vault',
       relativePath: 'GotIt!/file.md',
       contents: '# hi',
     })
+
     expect(result.fullPath).toBe('/tmp/vault/GotIt!/file.md')
-    expect(w.writes).toHaveLength(1)
-    expect(w.writes[0]?.contents).toBe('# hi')
+    expect(write).toHaveBeenCalledTimes(1)
   })
 
-  it('reports existing filenames in a folder', async () => {
-    const w = ObsidianWriter.createNull({
-      existing: { 'GotIt!': new Set(['a.md', 'b.md']) },
+  it('delegates folder listing to the configured backend', async () => {
+    const write = vi.fn(async () => ({ fullPath: '/tmp/vault/GotIt!/file.md' }))
+    const listFolder = vi.fn(async () => new Set(['a.md', 'b.md']))
+    const writer = ObsidianWriter.fromBackend({ write, listFolder })
+
+    const files = await writer.listFolder({ vaultPath: '/tmp/vault', relativeFolder: 'GotIt!' })
+    expect(files).toEqual(new Set(['a.md', 'b.md']))
+    expect(listFolder).toHaveBeenCalledTimes(1)
+  })
+
+  it('propagates backend write failures', async () => {
+    const write = vi.fn(async () => {
+      throw new Error('ENOENT')
     })
-    expect(await w.listFolder({ vaultPath: '/tmp/vault', relativeFolder: 'GotIt!' })).toEqual(
-      new Set(['a.md', 'b.md'])
-    )
-  })
+    const listFolder = vi.fn(async () => new Set<string>())
+    const writer = ObsidianWriter.fromBackend({ write, listFolder })
 
-  it('throws when vault path missing', async () => {
-    const w = ObsidianWriter.createNull({ writeFailure: new Error('ENOENT') })
     await expect(
-      w.write({ vaultPath: '/nope', relativePath: 'x.md', contents: '' })
+      writer.write({ vaultPath: '/nope', relativePath: 'x.md', contents: '' })
     ).rejects.toThrow('ENOENT')
   })
 })

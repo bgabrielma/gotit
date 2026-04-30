@@ -17,7 +17,7 @@ graph TB
     subgraph Shell["Imperative Shell: Backend API (Express/TypeScript)"]
         direction TB
         Routes["HTTP Routes<br/>Logic Sandwich: read → core → write"]
-        Infra["Infrastructure Wrappers (Nullables)<br/>VisionAI · FileWriter · AudioTranscriber"]
+        Infra["Infrastructure Wrappers (Injected Backends)<br/>VisionAI · FileWriter · AudioTranscriber"]
         Routes --> Infra
     end
 
@@ -44,8 +44,8 @@ graph TB
     Core -- "returns data" --> Shell
     Shell -- "reads types" --> Shared
     Core -- "reads types" --> Shared
-    Shell -- "API calls (Nullables)" --> AI
-    Shell -- "file write (Nullables)" --> Obsidian
+    Shell -- "API calls (mocks in tests)" --> AI
+    Shell -- "file write (mocks in tests)" --> Obsidian
 
     style Client fill:#1e293b,stroke:#60a5fa,color:#e2e8f0
     style Shell fill:#1e293b,stroke:#a78bfa,color:#e2e8f0

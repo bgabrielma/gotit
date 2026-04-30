@@ -9,45 +9,33 @@ export interface VisionBackend {
   analyze(args: VisionAnalyzeArgs): Promise<AnalysisResult>
 }
 
-export type NullableVisionConfig = {
-  analysis?: AnalysisResult
-  failure?: Error
-}
-
+/**
+ * Infrastructure wrapper for vision analysis.
+ * Use {@link VisionAI.create} in production and {@link VisionAI.fromBackend} in tests.
+ */
 export class VisionAI {
   private constructor(private readonly backend: VisionBackend) {}
 
+  /**
+   * Creates a vision client backed by the configured OpenAI-compatible runtime.
+   */
   static create(args: { apiKey: string; model: string; baseURL?: string }): VisionAI {
     const backend = new OpenAIVisionBackend(args.apiKey, args.model, args.baseURL)
     return new VisionAI(backend)
   }
 
-  static createNull(config: NullableVisionConfig = {}): VisionAI {
-    const backend = new StubVisionBackend(config)
+  /**
+   * Creates a vision client from an injected backend.
+   */
+  static fromBackend(backend: VisionBackend): VisionAI {
     return new VisionAI(backend)
   }
 
+  /**
+   * Executes a vision analysis request.
+   */
   analyze(args: VisionAnalyzeArgs): Promise<AnalysisResult> {
     return this.backend.analyze(args)
-  }
-}
-
-class StubVisionBackend implements VisionBackend {
-  constructor(private readonly config: NullableVisionConfig) {}
-
-  async analyze(): Promise<AnalysisResult> {
-    if (this.config.failure) {
-      throw this.config.failure
-    }
-    return (
-      this.config.analysis ?? {
-        raw_text: '',
-        urls: [],
-        regions: [],
-        context_kind: 'unknown',
-        summary: '',
-      }
-    )
   }
 }
 
@@ -149,6 +137,9 @@ class OpenAIVisionBackend implements VisionBackend {
   }
 }
 
+/**
+ * Extracts plain text from an OpenAI responses payload.
+ */
 function extractOutputText(payload: unknown): string | null {
   if (!payload || typeof payload !== 'object') {
     return null
@@ -183,6 +174,9 @@ function extractOutputText(payload: unknown): string | null {
   return null
 }
 
+/**
+ * Normalizes connector responses into the canonical analysis shape.
+ */
 export function normalizeAnalysisResult(value: unknown): unknown {
   if (!value || typeof value !== 'object') {
     return value
@@ -206,6 +200,9 @@ export function normalizeAnalysisResult(value: unknown): unknown {
   }
 }
 
+/**
+ * Maps provider-specific context aliases into canonical shared enum values.
+ */
 function normalizeContextKind(value: unknown): string {
   if (typeof value !== 'string') {
     return 'unknown'
@@ -229,6 +226,9 @@ function normalizeContextKind(value: unknown): string {
   return value
 }
 
+/**
+ * Normalizes region payloads and infers missing kinds.
+ */
 function normalizeRegions(value: unknown): unknown[] {
   if (!Array.isArray(value)) {
     return []
@@ -249,6 +249,9 @@ function normalizeRegions(value: unknown): unknown[] {
   })
 }
 
+/**
+ * Normalizes and deduplicates URL objects from provider output.
+ */
 function normalizeUrls(
   value: unknown
 ): Array<{ href: string; anchor?: string; near_text?: string }> {

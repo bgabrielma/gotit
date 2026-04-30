@@ -8,41 +8,33 @@ export interface ChatBackend {
   complete(args: ChatCompleteArgs): Promise<string>
 }
 
-export type NullableChatConfig = {
-  responses?: string[]
-  failure?: Error
-}
-
+/**
+ * Infrastructure wrapper for chat completions.
+ * Use {@link ChatAI.create} in production and {@link ChatAI.fromBackend} in tests.
+ */
 export class ChatAI {
   private constructor(private readonly backend: ChatBackend) {}
 
+  /**
+   * Creates a chat client backed by the configured OpenAI-compatible runtime.
+   */
   static create(args: { apiKey: string; model: string; baseURL?: string }): ChatAI {
     const backend = new OpenAIChatBackend(args.apiKey, args.model, args.baseURL)
     return new ChatAI(backend)
   }
 
-  static createNull(config: NullableChatConfig = {}): ChatAI {
-    const backend = new StubChatBackend(config)
+  /**
+   * Creates a chat client from an injected backend.
+   */
+  static fromBackend(backend: ChatBackend): ChatAI {
     return new ChatAI(backend)
   }
 
+  /**
+   * Executes a completion request.
+   */
   complete(args: ChatCompleteArgs): Promise<string> {
     return this.backend.complete(args)
-  }
-}
-
-class StubChatBackend implements ChatBackend {
-  private idx = 0
-  constructor(private readonly config: NullableChatConfig) {}
-
-  async complete(): Promise<string> {
-    if (this.config.failure) {
-      throw this.config.failure
-    }
-    const responses = this.config.responses ?? ['']
-    const r = responses[this.idx % responses.length] ?? ''
-    this.idx += 1
-    return r
   }
 }
 
@@ -82,6 +74,9 @@ class OpenAIChatBackend implements ChatBackend {
   }
 }
 
+/**
+ * Extracts plain text from an OpenAI responses payload.
+ */
 function extractOutputText(payload: unknown): string | null {
   if (!payload || typeof payload !== 'object') {
     return null

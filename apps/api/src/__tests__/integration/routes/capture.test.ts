@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import request from 'supertest'
-import { createApp } from '../../../app.js'
-import { Store } from '../../../infra/store.js'
-import { VisionAI } from '../../../infra/vision-ai.js'
-import { ChatAI } from '../../../infra/chat-ai.js'
-import { ObsidianWriter } from '../../../infra/obsidian-writer.js'
+import {
+  createChatAIMock,
+  createTestApp,
+  createVisionAIMock,
+  registerDevice,
+  setupAuthedApp,
+} from '../../helper.js'
 
+/**
+ * Default analysis payload used in capture route integration tests.
+ */
 const sampleAnalysis = {
   raw_text: 'README for cool-lib',
   urls: [{ href: 'https://github.com/x/cool-lib' }],
@@ -14,6 +19,9 @@ const sampleAnalysis = {
   summary: 'GitHub repo: cool-lib',
 }
 
+/**
+ * Builds an app with mocked vision and chat backends for capture route tests.
+ */
 function makeApp(
   opts: {
     visionAnalysis?: typeof sampleAnalysis
@@ -21,32 +29,43 @@ function makeApp(
     visionFailure?: Error
   } = {}
 ) {
-  return createApp({
-    store: Store.createNull(),
-    visionAI: opts.visionFailure
-      ? VisionAI.createNull({ failure: opts.visionFailure })
-      : VisionAI.createNull({ analysis: opts.visionAnalysis ?? sampleAnalysis }),
-    chatAI: ChatAI.createNull({
-      responses: [opts.chatResponse ?? 'Looks like a JSON parser repo.'],
-    }),
-    obsidianWriter: ObsidianWriter.createNull(),
-    visionPrompt: 'p',
-    chatPersonaPrompt: 'p',
-    vaultPath: '/tmp/vault',
-    captureFolder: 'GotIt!',
-    dataDir: '/tmp/data',
-    version: 'test',
+  const visionMock = createVisionAIMock(
+    opts.visionFailure
+      ? { analysis: opts.visionAnalysis ?? sampleAnalysis, failure: opts.visionFailure }
+      : { analysis: opts.visionAnalysis ?? sampleAnalysis }
+  )
+  const chatMock = createChatAIMock({
+    responses: [opts.chatResponse ?? 'Looks like a JSON parser repo.'],
+  })
+
+  return createTestApp({
+    visionAI: visionMock.instance,
+    chatAI: chatMock.instance,
   })
 }
 
+/**
+ * Creates an authenticated app/session pair for capture route tests.
+ */
 async function setup(opts: Parameters<typeof makeApp>[0] = {}) {
-  const app = makeApp(opts)
-  const deviceRes = await request(app).post('/device').send({ install_id: 'inst-1' })
-  const token = deviceRes.body.token as string
-  await request(app).post('/sessions').set('Authorization', `Bearer ${token}`)
-  return { app, token }
+  const visionMock = createVisionAIMock(
+    opts.visionFailure
+      ? { analysis: opts.visionAnalysis ?? sampleAnalysis, failure: opts.visionFailure }
+      : { analysis: opts.visionAnalysis ?? sampleAnalysis }
+  )
+  const chatMock = createChatAIMock({
+    responses: [opts.chatResponse ?? 'Looks like a JSON parser repo.'],
+  })
+
+  return setupAuthedApp({
+    visionAI: visionMock.instance,
+    chatAI: chatMock.instance,
+  })
 }
 
+/**
+ * Integration coverage for capture route behavior.
+ */
 describe('POST /capture', () => {
   it('runs vision, appends capture + assistant messages, returns analysis', async () => {
     const { app, token } = await setup()
@@ -62,8 +81,7 @@ describe('POST /capture', () => {
 
   it('rejects when no active session', async () => {
     const app = makeApp()
-    const deviceRes = await request(app).post('/device').send({ install_id: 'inst-1' })
-    const token = deviceRes.body.token as string
+    const token = await registerDevice(app)
     const res = await request(app)
       .post('/capture')
       .set('Authorization', `Bearer ${token}`)
