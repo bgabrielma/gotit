@@ -11,10 +11,7 @@
     "test": "pnpm run test:unit && pnpm run test:integration",
     "test:unit": "vitest run src/__tests__/unit",
     "test:integration": "vitest run src/__tests__/integration/routes",
-    "test:integration:postgres": "vitest run src/__tests__/integration/infra/store.postgres.test.ts",
-    "test:integration:mocked": "pnpm run test:integration",
-    "test:integration:smoke": "DOTENV_CONFIG_PATH=../../.env node -r dotenv/config ../../node_modules/vitest/vitest.mjs run src/__tests__/integration/smoke/api.smoke.test.ts",
-    "test:live": "pnpm run test:integration:smoke"
+    "test:integration:smoke": "DOTENV_CONFIG_PATH=../../.env node -r dotenv/config ../../node_modules/vitest/vitest.mjs run src/__tests__/integration/smoke/api.smoke.test.ts"
   },
   "dependencies": {
     "@got-it/core": "workspace:*",
