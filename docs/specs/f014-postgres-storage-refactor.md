@@ -15,17 +15,17 @@ F014 is an infrastructure refactor. It must preserve the existing API behavior, 
 
 ### 2.1 In scope
 
-| Area              | Requirement                                                                                                                                          |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Database runtime  | Postgres is the only supported runtime database for `packages/api` after F014.                                                                       |
-| Store wrapper     | The existing `Store` infrastructure wrapper stays as the route-facing storage abstraction.                                                           |
-| Migrations        | `packages/api/migrations/` contains Postgres-dialect SQL and is run by the API at startup.                                                           |
-| Configuration     | `GOTIT_DATABASE_URL` replaces `GOTIT_DB_PATH`.                                                                                                       |
-| Docker local dev  | Compose can start a local Postgres service and the API can connect to it.                                                                            |
-| Docker production | Compose supports single-host production deployment: API container plus Postgres container, persistent Postgres volume, and environment-based config. |
-| Clean reset       | Existing SQLite `.db` files are not migrated. Developers and deployments start with an empty Postgres database.                                      |
-| Tests             | Existing route behavior remains covered. Storage tests cover the Postgres-backed `Store` contract.                                                   |
-| Dependencies      | Remove `better-sqlite3` and `@types/better-sqlite3`; add a Postgres driver and needed types.                                                         |
+| Area              | Requirement                                                                                                                                                 |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Database runtime  | Postgres is the only supported runtime database for `packages/api` after F014.                                                                              |
+| Store wrapper     | The existing `Store` infrastructure wrapper stays as the route-facing storage abstraction.                                                                  |
+| Migrations        | `packages/api/migrations/` contains Postgres-dialect SQL and is run by the API at startup.                                                                  |
+| Configuration     | `GOTIT_DATABASE_URL` replaces `GOTIT_DB_PATH`.                                                                                                              |
+| Docker local dev  | Compose can start a local Postgres service and the API can connect to it.                                                                                   |
+| Docker production | Compose supports single-host production deployment: API container plus Postgres container, persistent Postgres volume, and environment-based config.        |
+| Clean reset       | Existing SQLite `.db` files are not migrated. Developers and deployments start with an empty Postgres database.                                             |
+| Test seams        | Production infrastructure wrappers do not expose `createNull()` or embed in-memory/stub implementations. Tests use test-local mocks/fakes or real Postgres. |
+| Dependencies      | Remove `better-sqlite3` and `@types/better-sqlite3`; add a Postgres driver and needed types.                                                                |
 
 ### 2.2 Out of scope
 
@@ -59,7 +59,7 @@ packages/api routes and middleware
         -> Postgres
 ```
 
-Routes, middleware, and tests continue to call the same `Store` methods:
+Routes and middleware continue to call the same `Store` methods:
 
 - `registerDevice`
 - `findDeviceByToken`
@@ -71,7 +71,7 @@ Routes, middleware, and tests continue to call the same `Store` methods:
 - `appendMessage`
 - `listMessages`
 
-`Store.createNull()` remains an in-memory test backend. It does not become a nullable production backend and is not used by server startup.
+`Store.createNull()` is removed. The existing in-memory backend is removed from production source. F014 is the cleanup point for the Phase 1 post-action decision that shell tests should use explicit mocks/fakes created in test code, not nullable production methods or embedded stub backends.
 
 ### 4.2 Postgres backend
 
@@ -85,7 +85,17 @@ The Postgres backend owns:
 
 The backend must not leak `pg` row types into routes.
 
-### 4.3 Migrations
+### 4.3 Test seam policy
+
+F014 standardizes the API storage test seam:
+
+- No `createNull()` methods remain on `Store`.
+- No `Null*`, `Stub*`, or production in-memory backend classes remain in `packages/api/src/infra/store.ts`.
+- Unit tests and non-live route integration tests use test-local mocks/fakes created under `packages/api/src/__tests__/`.
+- Live storage validation uses real Postgres through `GOTIT_DATABASE_URL`.
+- If `Store` needs backend injection for tests, the injection point must accept an explicit test-provided `StoreBackend`; it must not construct a fake backend internally.
+
+### 4.4 Migrations
 
 `001_init.sql` is ported to Postgres dialect:
 
@@ -155,7 +165,9 @@ postgres://gotit:gotit@localhost:5432/gotit
 
 ### 7.1 Unit and route tests
 
-Existing API route tests should keep using explicit test doubles and `Store.createNull()` unless they are specifically testing Postgres behavior. This preserves fast test feedback and follows the shell testing policy.
+Existing API route tests should keep fast feedback by injecting explicit test-local mocks/fakes. These fakes live in test files or test helpers, not in production infrastructure wrappers.
+
+Route tests do not require real Postgres unless the test is specifically validating Postgres behavior.
 
 ### 7.2 Postgres integration tests
 
@@ -190,6 +202,9 @@ If Postgres integration tests require Docker, the implementation plan must defin
 - [ ] `packages/api` no longer depends on `better-sqlite3`.
 - [ ] `packages/api` uses Postgres via `GOTIT_DATABASE_URL`.
 - [ ] `Store` route-facing method names and behavior remain stable.
+- [ ] `Store.createNull()` is removed.
+- [ ] No production in-memory/stub storage backend remains in `packages/api/src/infra/store.ts`.
+- [ ] Unit and non-live integration tests use test-local mocks/fakes for storage.
 - [ ] Existing route tests still pass without requiring real Postgres.
 - [ ] Focused Postgres storage tests pass against a real Postgres database.
 - [ ] Migrations are Postgres dialect and idempotent.
@@ -206,7 +221,8 @@ If Postgres integration tests require Docker, the implementation plan must defin
 - [ ] Replace SQLite storage with Postgres while preserving API behavior.
 - [ ] Make Docker Compose the supported local development and single-host production deployment path.
 - [ ] Use `GOTIT_DATABASE_URL` as the storage configuration boundary.
-- [ ] Keep `Store.createNull()` for test-side in-memory route tests.
+- [ ] Remove `Store.createNull()` and production-side storage stubs/nullables.
+- [ ] Convert unit and non-live integration tests to test-local mocks/fakes.
 - [ ] Add real Postgres storage validation.
 - [ ] Remove SQLite runtime dependencies and config.
 - [ ] Document clean reset; do not implement SQLite data migration.
@@ -223,14 +239,17 @@ If Postgres integration tests require Docker, the implementation plan must defin
 
 The validator must confirm no product behavior changed and no SQLite runtime path remains.
 
+The validator must also grep `packages/api/src` for `createNull`, `Null`, `Stub`, and in-memory storage implementations. Any remaining production-side nullable or stub storage path is a spec-conformance failure.
+
 ## 10. Terminology
 
-| Term                        | Required meaning                                                               |
-| --------------------------- | ------------------------------------------------------------------------------ |
-| `Postgres Storage Refactor` | F014 feature name.                                                             |
-| `Store`                     | API storage infrastructure wrapper consumed by routes and auth middleware.     |
-| `Postgres backend`          | Concrete `StoreBackend` implementation backed by Postgres.                     |
-| `GOTIT_DATABASE_URL`        | Only runtime database configuration variable after F014.                       |
-| `clean reset`               | Explicit decision to not migrate existing SQLite data.                         |
-| `single-host production`    | Docker Compose deployment with API and Postgres containers on one Docker host. |
-| `Postgres storage tests`    | Tests that run the `Store` contract against real Postgres.                     |
+| Term                        | Required meaning                                                                               |
+| --------------------------- | ---------------------------------------------------------------------------------------------- |
+| `Postgres Storage Refactor` | F014 feature name.                                                                             |
+| `Store`                     | API storage infrastructure wrapper consumed by routes and auth middleware.                     |
+| `Postgres backend`          | Concrete `StoreBackend` implementation backed by Postgres.                                     |
+| `GOTIT_DATABASE_URL`        | Only runtime database configuration variable after F014.                                       |
+| `clean reset`               | Explicit decision to not migrate existing SQLite data.                                         |
+| `single-host production`    | Docker Compose deployment with API and Postgres containers on one Docker host.                 |
+| `Postgres storage tests`    | Tests that run the `Store` contract against real Postgres.                                     |
+| `test-local mock/fake`      | Test-only implementation declared under `packages/api/src/__tests__/`, never production infra. |
