@@ -1,8 +1,8 @@
-import 'dotenv/config'
 import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { createApp } from './app.js'
-import { loadConfig } from './config.js'
+import { loadServerConfig } from './config.js'
 import { ChatAI } from './infra/chat-ai.js'
 import { LLMConnectorConfig } from './infra/llm-connector-config.js'
 import { ObsidianWriter } from './infra/obsidian-writer.js'
@@ -10,14 +10,15 @@ import { Store } from './infra/store.js'
 import { VisionAI } from './infra/vision-ai.js'
 import { DEFAULT_CHAT_PROMPT, DEFAULT_VISION_PROMPT } from './prompts/defaults.js'
 
-const cfg = loadConfig(process.env)
-const pkg = JSON.parse(readFileSync(resolve('apps/api/package.json'), 'utf8')) as {
+const cfg = loadServerConfig(import.meta.url)
+const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const pkg = JSON.parse(readFileSync(resolve(pkgRoot, 'package.json'), 'utf8')) as {
   version: string
 }
 
 const store = Store.create({
   dbPath: cfg.dbPath,
-  migrationsDir: resolve('apps/api/migrations'),
+  migrationsDir: resolve(pkgRoot, 'migrations'),
 })
 const llm = LLMConnectorConfig.fromConfig(cfg)
 

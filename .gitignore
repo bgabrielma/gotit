@@ -8,3 +8,7 @@ build/
 .env.local
 tmp/*
 !tmp/.gitkeep
+*.db
+*.db-shm
+*.db-wal
+apps/api/data/

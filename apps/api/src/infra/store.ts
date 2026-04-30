@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3'
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { mkdirSync, readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
 import { v4 as uuid } from 'uuid'
 import type { Message, Session, DeviceId, SessionId } from '@got-it/shared'
 
@@ -28,6 +28,7 @@ export class Store {
   private constructor(private readonly backend: StoreBackend) {}
 
   static create(args: { dbPath: string; migrationsDir: string }): Store {
+    mkdirSync(dirname(resolve(args.dbPath)), { recursive: true })
     const db = new Database(args.dbPath)
     db.pragma('journal_mode = WAL')
     db.pragma('foreign_keys = ON')

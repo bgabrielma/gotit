@@ -1,10 +1,14 @@
+import { existsSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { config as loadDotenv } from 'dotenv'
 import { z } from 'zod'
 
 const ConfigSchema = z
   .object({
     OPENAI_API_KEY: z.string().default(''),
     GOTIT_OPENAI_MODEL: z.string().default('gpt-4.1'),
-    GOTIT_LLM_CONNECTOR: z.enum(['openai', 'local']).default('openai'),
+    GOTIT_LLM_CONNECTOR: z.enum(['openai', 'local', 'ollama', 'external']).default('openai'),
     GOTIT_LLM_BASE_URL: z.string().default(''),
     GOTIT_LLM_API_KEY: z.string().default(''),
     GOTIT_DB_PATH: z.string().default('./data/gotit.db'),
@@ -21,10 +25,10 @@ const ConfigSchema = z
         path: ['OPENAI_API_KEY'],
       })
     }
-    if (cfg.GOTIT_LLM_CONNECTOR === 'local' && cfg.GOTIT_LLM_BASE_URL.length === 0) {
+    if (cfg.GOTIT_LLM_CONNECTOR !== 'openai' && cfg.GOTIT_LLM_BASE_URL.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'GOTIT_LLM_BASE_URL is required when GOTIT_LLM_CONNECTOR=local',
+        message: `GOTIT_LLM_BASE_URL is required when GOTIT_LLM_CONNECTOR=${cfg.GOTIT_LLM_CONNECTOR}`,
         path: ['GOTIT_LLM_BASE_URL'],
       })
     }
@@ -33,7 +37,7 @@ const ConfigSchema = z
 export type Config = {
   openaiApiKey: string
   openaiModel: string
-  llmConnector: 'openai' | 'local'
+  llmConnector: 'openai' | 'local' | 'ollama' | 'external'
   llmBaseUrl: string
   llmApiKey: string
   dbPath: string
@@ -43,6 +47,16 @@ export type Config = {
   logLevel: 'error' | 'warn' | 'info' | 'debug'
 }
 
+/** Returns the ordered list of .env file paths the server should load. */
+export function getServerEnvPaths(cwd: string, moduleUrl: string): string[] {
+  const sourceDir = dirname(fileURLToPath(moduleUrl))
+  const repoRootEnvPath = resolve(sourceDir, '../../..', '.env')
+  const cwdEnvPath = resolve(cwd, '.env')
+  const cwdLocalEnvPath = resolve(cwd, '.env.local')
+  return Array.from(new Set([repoRootEnvPath, cwdEnvPath, cwdLocalEnvPath]))
+}
+
+/** Pure: parses and validates a raw env record into a typed Config. */
 export function loadConfig(env: NodeJS.ProcessEnv | Record<string, string | undefined>): Config {
   const parsed = ConfigSchema.parse(env)
   return {
@@ -57,4 +71,19 @@ export function loadConfig(env: NodeJS.ProcessEnv | Record<string, string | unde
     port: parsed.PORT,
     logLevel: parsed.LOG_LEVEL,
   }
+}
+
+/**
+ * Loads .env files from the repo root and cwd, then parses process.env into Config.
+ * Call once at server startup. Pass `import.meta.url` from the entrypoint.
+ * The `cwd` param exists for testing only — omit it in production code.
+ */
+export function loadServerConfig(moduleUrl: string, cwd = process.cwd()): Config {
+  const envPaths = getServerEnvPaths(cwd, moduleUrl)
+  for (const envPath of envPaths) {
+    if (existsSync(envPath)) {
+      loadDotenv({ path: envPath, override: false })
+    }
+  }
+  return loadConfig(process.env)
 }
