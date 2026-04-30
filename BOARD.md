@@ -13,7 +13,7 @@
   - Phase 1a Plan B (macOS client): `docs/specs/f001-phase-1a-macos-client.md` ✓ — implementation plan pending (`docs/plans/f001-phase-1a-macos-client.md` to be written next)
   - Phase 1b (mic), 1c (Listen), 1d (history): not started
 
-- [ ] **F014** Postgres Storage Refactor (docker-compose) — Replace the SQLite `Store` infrastructure wrapper in `packages/api` with Postgres provisioned via Docker Compose for local development and single-host production deployment. Small, scoped refactor: swap the wrapper implementation, port the migration files (`packages/api/migrations/`) to Postgres dialect, add Compose deployment files, update `.env.template` (e.g., `GOTIT_DATABASE_URL`). No product behavior change. **Top priority before F013** — done before Obsidian Plugin Delivery to avoid migrating a Postgres-shaped dataset twice.
+- [ ] **F014** Postgres Storage Refactor (docker-compose) — Replace the SQLite `Store` infrastructure wrapper in `packages/api` with Postgres provisioned via a single `.env`-driven Docker Compose file for local development and single-host production deployment. Small, scoped refactor: swap the wrapper implementation, port the migration files (`packages/api/migrations/`) to Postgres dialect, add `docker-compose.yml`, update `.env.template` (e.g., `GOTIT_DATABASE_URL`). No product behavior change. **Top priority before F013** — done before Obsidian Plugin Delivery to avoid migrating a Postgres-shaped dataset twice.
   - Depends on: F001 Phase 1a Plan B (started)
   - Spec: `docs/specs/f014-postgres-storage-refactor.md` ✓
   - Introduces: `docker-compose.yml`, Postgres `Store` adapter (still behind same protocol), Postgres-dialect migrations, env var changes.

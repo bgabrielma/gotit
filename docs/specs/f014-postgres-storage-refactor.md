@@ -15,17 +15,17 @@ F014 is an infrastructure refactor. It must preserve the existing API behavior, 
 
 ### 2.1 In scope
 
-| Area              | Requirement                                                                                                                                                 |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Database runtime  | Postgres is the only supported runtime database for `packages/api` after F014.                                                                              |
-| Store wrapper     | The existing `Store` infrastructure wrapper stays as the route-facing storage abstraction.                                                                  |
-| Migrations        | `packages/api/migrations/` contains Postgres-dialect SQL and is run by the API at startup.                                                                  |
-| Configuration     | `GOTIT_DATABASE_URL` replaces `GOTIT_DB_PATH`.                                                                                                              |
-| Docker local dev  | Compose can start a local Postgres service and the API can connect to it.                                                                                   |
-| Docker production | Compose supports single-host production deployment: API container plus Postgres container, persistent Postgres volume, and environment-based config.        |
-| Clean reset       | Existing SQLite `.db` files are not migrated. Developers and deployments start with an empty Postgres database.                                             |
-| Test seams        | Production infrastructure wrappers do not expose `createNull()` or embed in-memory/stub implementations. Tests use test-local mocks/fakes or real Postgres. |
-| Dependencies      | Remove `better-sqlite3` and `@types/better-sqlite3`; add a Postgres driver and needed types.                                                                |
+| Area              | Requirement                                                                                                                                                     |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Database runtime  | Postgres is the only supported runtime database for `packages/api` after F014.                                                                                  |
+| Store wrapper     | The existing `Store` infrastructure wrapper stays as the route-facing storage abstraction.                                                                      |
+| Migrations        | `packages/api/migrations/` contains Postgres-dialect SQL and is run by the API at startup.                                                                      |
+| Configuration     | `GOTIT_DATABASE_URL` replaces `GOTIT_DB_PATH`.                                                                                                                  |
+| Docker local dev  | The single `docker-compose.yml` can start Postgres for local development and reads values from `.env`.                                                          |
+| Docker production | The same `docker-compose.yml` supports single-host production deployment: API container plus Postgres container, persistent Postgres volume, and `.env` config. |
+| Clean reset       | Existing SQLite `.db` files are not migrated. Developers and deployments start with an empty Postgres database.                                                 |
+| Test seams        | Production infrastructure wrappers do not expose `createNull()` or embed in-memory/stub implementations. Tests use test-local mocks/fakes or real Postgres.     |
+| Dependencies      | Remove `better-sqlite3` and `@types/better-sqlite3`; add a Postgres driver and needed types.                                                                    |
 
 ### 2.2 Out of scope
 
@@ -123,14 +123,15 @@ The API may still be run from the host with `pnpm dev`, connected to the Compose
 
 ### 5.2 Single-host production
 
-F014 includes a single-host Docker deployment path:
+F014 includes a single-host Docker deployment path through the same `docker-compose.yml` used for local development:
 
 - API runs as a container.
 - Postgres runs as a container.
 - Postgres data persists in a named Docker volume.
 - API receives `GOTIT_DATABASE_URL` from environment.
 - API receives AI/provider and storage configuration from environment.
-- The production Compose path does not bake secrets into committed files.
+- Compose reads runtime values from `.env` and does not bake secrets into committed files.
+- There is no separate `docker-compose.prod.yml`; dev and production differ by `.env` values.
 
 Production can alternatively point the API container at an externally managed Postgres instance by changing `GOTIT_DATABASE_URL`. F014 does not provision that external database.
 
@@ -208,8 +209,7 @@ If Postgres integration tests require Docker, the implementation plan must defin
 - [ ] Existing route tests still pass without requiring real Postgres.
 - [ ] Focused Postgres storage tests pass against a real Postgres database.
 - [ ] Migrations are Postgres dialect and idempotent.
-- [ ] Docker Compose supports local Postgres.
-- [ ] Docker Compose supports single-host production with API plus Postgres containers.
+- [ ] A single `.env`-driven `docker-compose.yml` supports local Postgres and single-host production.
 - [ ] `.env.template` documents `GOTIT_DATABASE_URL` and clean-reset behavior.
 - [ ] No SQLite data migration path exists.
 - [ ] `pnpm validate` passes, plus any documented Docker-backed Postgres test command.

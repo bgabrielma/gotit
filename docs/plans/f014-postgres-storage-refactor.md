@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace SQLite with Postgres, remove production `createNull`/stub storage seams, and add Docker Compose support for local development plus single-host production.
+**Goal:** Replace SQLite with Postgres, remove production `createNull`/stub storage seams, and add one `.env`-driven Docker Compose file for local development plus single-host production.
 
 **Architecture:** `packages/api` remains the imperative shell. Routes depend on the `StoreBackend` interface, the production `Store` class implements that interface with Postgres, and test-only fakes live under `packages/api/src/__tests__/`. Migrations are Postgres SQL run by the API on startup.
 
@@ -23,12 +23,10 @@
 - Modify: route tests under `packages/api/src/__tests__/integration/routes/` - remove direct `Store.createNull()` usage.
 - Rename/replace: `packages/api/src/__tests__/unit/infra/store.test.ts` -> `packages/api/src/__tests__/integration/infra/store.postgres.test.ts`.
 - Modify: `packages/api/package.json` - replace SQLite deps with `pg`, add Postgres test script.
-- Modify: `.env.template` - document `GOTIT_DATABASE_URL`, clean reset, local and single-host deployment env.
+- Modify: `.env.template` - document `GOTIT_DATABASE_URL`, Compose variables, clean reset, and dev/prod `.env` guidance.
 - Create: `.dockerignore` - keep Docker build context small.
-- Create: `packages/api/Dockerfile` - API image for single-host production Compose.
-- Create: `docker-compose.yml` - local development Postgres service and optional API service.
-- Create: `docker-compose.prod.yml` - single-host production API + Postgres deployment.
-- Create: `docs/deployment/single-host-docker.md` - operator notes for production Compose and clean reset.
+- Create: `packages/api/Dockerfile` - API image used by the single Compose file.
+- Create: `docker-compose.yml` - the only Compose file; reads `.env` and supports both local development and single-host production.
 
 ## Task 1: Configuration Contract
 
@@ -104,8 +102,9 @@ Replace the SQLite block with:
 ```dotenv
 # Postgres connection string. Local Docker Compose default:
 # postgres://gotit:gotit@localhost:5432/gotit
-# Single-host production should set this from deployment secrets.
-GOTIT_DATABASE_URL=postgres://gotit:gotit@localhost:5432/gotit
+# Compose service-to-service URL. If running the API from the host with pnpm,
+# override this in .env.local with postgres://gotit:gotit@localhost:5432/gotit.
+GOTIT_DATABASE_URL=postgres://gotit:gotit@postgres:5432/gotit
 
 # Clean reset: F014 does not migrate SQLite data. To reset storage, drop the
 # Postgres database or remove the Docker volume used by Compose.
@@ -717,7 +716,6 @@ git commit -m "test(api): cover postgres store contract"
 - Create: `.dockerignore`
 - Create: `packages/api/Dockerfile`
 - Create: `docker-compose.yml`
-- Create: `docker-compose.prod.yml`
 
 - [ ] **Step 6.1: Create `.dockerignore`**
 
@@ -729,7 +727,6 @@ packages/*/node_modules
 apps/*/.build
 tmp
 data
-.env
 .env.local
 coverage
 dist
@@ -762,24 +759,27 @@ WORKDIR /app/packages/api
 CMD ["pnpm", "exec", "tsx", "src/server.ts"]
 ```
 
-- [ ] **Step 6.3: Create local development Compose**
+- [ ] **Step 6.3: Create single `.env`-driven Compose file**
 
-Create `docker-compose.yml`.
+Create `docker-compose.yml`. This is the only Compose file for F014. It reads runtime values from `.env` through Compose interpolation and `env_file`.
 
 ```yaml
 services:
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      POSTGRES_DB: gotit
-      POSTGRES_USER: gotit
-      POSTGRES_PASSWORD: gotit
+      POSTGRES_DB: ${POSTGRES_DB:-gotit}
+      POSTGRES_USER: ${POSTGRES_USER:-gotit}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gotit}
     ports:
-      - '5432:5432'
+      - '${POSTGRES_PORT:-5432}:5432'
     volumes:
       - gotit_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U gotit -d gotit']
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
       interval: 5s
       timeout: 5s
       retries: 10
@@ -788,18 +788,19 @@ services:
     build:
       context: .
       dockerfile: packages/api/Dockerfile
-    profiles:
-      - api
+    restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      GOTIT_DATABASE_URL: postgres://gotit:gotit@postgres:5432/gotit
-      GOTIT_DATA_DIR: /app/data
+      GOTIT_DATABASE_URL: ${GOTIT_DATABASE_URL:-postgres://gotit:gotit@postgres:5432/gotit}
+      GOTIT_DATA_DIR: ${GOTIT_DATA_DIR:-/app/data}
       GOTIT_VAULT_PATH: /vault
-      PORT: 3000
+      PORT: ${PORT:-3000}
     ports:
-      - '3000:3000'
+      - '${GOTIT_API_PORT:-3000}:${PORT:-3000}'
     volumes:
       - gotit_api_data:/app/data
-      - ${GOTIT_VAULT_PATH:-./tmp/docker-vault}:/vault
+      - ${GOTIT_HOST_VAULT_PATH:-./tmp/docker-vault}:/vault
     depends_on:
       postgres:
         condition: service_healthy
@@ -809,55 +810,19 @@ volumes:
   gotit_api_data:
 ```
 
-- [ ] **Step 6.4: Create single-host production Compose**
+- [ ] **Step 6.4: Update `.env.template` with Compose variables**
 
-Create `docker-compose.prod.yml`.
+Ensure `.env.template` includes the variables consumed by `docker-compose.yml`:
 
-```yaml
-services:
-  postgres:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
-      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
-    volumes:
-      - gotit_postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
-  api:
-    build:
-      context: .
-      dockerfile: packages/api/Dockerfile
-    restart: unless-stopped
-    environment:
-      OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY is required}
-      GOTIT_OPENAI_MODEL: ${GOTIT_OPENAI_MODEL:-gpt-4.1}
-      GOTIT_LLM_CONNECTOR: ${GOTIT_LLM_CONNECTOR:-openai}
-      GOTIT_LLM_BASE_URL: ${GOTIT_LLM_BASE_URL:-}
-      GOTIT_LLM_API_KEY: ${GOTIT_LLM_API_KEY:-}
-      GOTIT_DATABASE_URL: ${GOTIT_DATABASE_URL:?GOTIT_DATABASE_URL is required}
-      GOTIT_DATA_DIR: /app/data
-      GOTIT_VAULT_PATH: /vault
-      PORT: 3000
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-    ports:
-      - '${GOTIT_API_PORT:-3000}:3000'
-    volumes:
-      - gotit_api_data:/app/data
-      - ${GOTIT_VAULT_PATH:?GOTIT_VAULT_PATH is required}:/vault
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-volumes:
-  gotit_postgres_data:
-  gotit_api_data:
+```dotenv
+POSTGRES_DB=gotit
+POSTGRES_USER=gotit
+POSTGRES_PASSWORD=gotit
+POSTGRES_PORT=5432
+GOTIT_DATABASE_URL=postgres://gotit:gotit@postgres:5432/gotit
+GOTIT_HOST_VAULT_PATH=./tmp/docker-vault
+GOTIT_VAULT_PATH=/vault
+GOTIT_API_PORT=3000
 ```
 
 - [ ] **Step 6.5: Validate Compose syntax**
@@ -866,19 +831,14 @@ Run:
 
 ```bash
 docker compose config
-docker compose -f docker-compose.prod.yml config
 ```
 
-Expected: PASS after required env vars are supplied for the production config command. Use a shell env prefix for local validation:
-
-```bash
-POSTGRES_DB=gotit POSTGRES_USER=gotit POSTGRES_PASSWORD=change-me OPENAI_API_KEY=sk-test GOTIT_DATABASE_URL=postgres://gotit:change-me@postgres:5432/gotit GOTIT_VAULT_PATH=./tmp/prod-vault docker compose -f docker-compose.prod.yml config
-```
+Expected: PASS using values from `.env` or `.env.template`-equivalent shell values.
 
 - [ ] **Step 6.6: Commit**
 
 ```bash
-git add .dockerignore packages/api/Dockerfile docker-compose.yml docker-compose.prod.yml
+git add .dockerignore packages/api/Dockerfile docker-compose.yml .env.template
 git commit -m "feat: add docker compose postgres deployment"
 ```
 
@@ -921,7 +881,7 @@ Expected: PASS. These tests must not require real Postgres.
 Run:
 
 ```bash
-GOTIT_LLM_CONNECTOR=local GOTIT_LLM_BASE_URL=http://localhost:11434/v1 docker compose --profile api up -d --build
+GOTIT_LLM_CONNECTOR=local GOTIT_LLM_BASE_URL=http://localhost:11434/v1 docker compose up -d --build
 curl -sS -i http://localhost:3000/health
 ```
 
@@ -929,7 +889,7 @@ Expected: HTTP 200 from `/health`.
 
 - [ ] **Step 7.5: Stop Compose services**
 
-Run: `docker compose --profile api down`
+Run: `docker compose down`
 
 Expected: Containers stop. Volumes remain unless explicitly removed.
 
@@ -993,82 +953,44 @@ git add packages/api/src packages/api/package.json pnpm-lock.yaml .env.template
 git commit -m "refactor(api): remove sqlite and nullable storage seams"
 ```
 
-## Task 9: Deployment Documentation
+## Task 9: Environment Documentation
 
 **Files:**
 
-- Create: `docs/deployment/single-host-docker.md`
 - Modify: `.env.template`
 
-- [ ] **Step 9.1: Add deployment documentation**
+- [ ] **Step 9.1: Add single-file Compose notes to `.env.template`**
 
-Create `docs/deployment/single-host-docker.md`.
-
-````markdown
-# Single-Host Docker Deployment
-
-F014 supports a single Docker host running the GotIt API and Postgres with Docker Compose.
-
-## Required Environment
-
-- `POSTGRES_DB`
-- `POSTGRES_USER`
-- `POSTGRES_PASSWORD`
-- `GOTIT_DATABASE_URL`
-- `OPENAI_API_KEY`
-- `GOTIT_VAULT_PATH`
-
-Example database URL for the Compose network:
-
-```text
-postgres://gotit:<password>@postgres:5432/gotit
-```
-
-## Start
-
-```bash
-docker compose -f docker-compose.prod.yml up -d --build
-```
-
-## Health Check
-
-```bash
-curl -sS -i http://localhost:3000/health
-```
-
-## Clean Reset
-
-F014 does not migrate SQLite data. To reset all Postgres data on a single-host deployment:
-
-```bash
-docker compose -f docker-compose.prod.yml down
-docker volume rm got-it_gotit_postgres_data
-docker compose -f docker-compose.prod.yml up -d --build
-```
-
-Only run the volume removal command when the stored sessions, messages, images metadata, and device registrations can be discarded.
-````
-
-- [ ] **Step 9.2: Ensure `.env.template` references the deployment doc**
-
-Add:
+Add deployment notes directly to `.env.template`.
 
 ```dotenv
-# Single-host Docker deployment notes:
-# docs/deployment/single-host-docker.md
+# F014 uses one docker-compose.yml for local development and single-host production.
+# Docker Compose reads this file through env_file and variable interpolation.
+# For local host-based pnpm dev, put host-only overrides in .env.local, for example:
+# GOTIT_DATABASE_URL=postgres://gotit:gotit@localhost:5432/gotit
+#
+# Start the full single-host stack:
+# docker compose up -d --build
+#
+# Start only Postgres for host-based development:
+# docker compose up -d postgres
+#
+# Clean reset: F014 does not migrate SQLite data. To discard all Postgres data:
+# docker compose down
+# docker volume rm got-it_gotit_postgres_data
 ```
 
-- [ ] **Step 9.3: Run docs formatting**
+- [ ] **Step 9.2: Validate `.env.template` is referenced by Compose**
 
-Run: `pnpm exec prettier --check docs/deployment/single-host-docker.md`
+Run: `docker compose config`
 
-Expected: PASS.
+Expected: PASS and rendered `api` plus `postgres` services contain values from `.env`.
 
-- [ ] **Step 9.4: Commit docs**
+- [ ] **Step 9.3: Commit env docs**
 
 ```bash
-git add .env.template docs/deployment/single-host-docker.md
-git commit -m "docs: document single-host postgres deployment"
+git add .env.template
+git commit -m "docs: document compose environment"
 ```
 
 ## Task 10: Final Validation And Spec Conformance
@@ -1122,6 +1044,6 @@ Only commit checkbox updates for steps actually completed by the implementor in 
 
 ## Plan Self-Review
 
-- Spec coverage: Tasks 1-5 cover Postgres runtime, migrations, config, store wrapper, test seams, dependencies. Task 6 covers local and single-host Docker deployment. Task 9 covers clean reset docs. Task 10 covers validation and spec conformance.
+- Spec coverage: Tasks 1-5 cover Postgres runtime, migrations, config, store wrapper, test seams, dependencies. Task 6 covers the single `.env`-driven Compose file for local and single-host Docker deployment. Task 9 covers clean reset and dev/prod env notes. Task 10 covers validation and spec conformance.
 - Placeholder scan: This plan contains no open-ended implementation placeholders. Every command has an expected result.
 - Type consistency: `databaseUrl`, `StoreBackend`, `Store`, `FakeStoreBackend`, `GOTIT_DATABASE_URL`, and `Postgres storage tests` match the F014 spec terminology.
