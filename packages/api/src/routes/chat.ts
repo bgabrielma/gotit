@@ -21,7 +21,7 @@ export function chatRouter(deps: AppDeps): Router {
       return
     }
     const device = req.device!
-    const session = deps.store.getActiveSession(device.id)
+    const session = await deps.store.getActiveSession(device.id)
     if (!session) {
       res.status(409).json({ error: 'no active session' })
       return
@@ -35,9 +35,9 @@ export function chatRouter(deps: AppDeps): Router {
       source: 'text',
       created_at: new Date().toISOString(),
     }
-    deps.store.appendMessage(userMessage)
+    await deps.store.appendMessage(userMessage)
 
-    const tail = deps.store.listMessages({ session_id: session.id, limit: 50 })
+    const tail = await deps.store.listMessages({ session_id: session.id, limit: 50 })
     const payload = buildChatRequest({
       personaPrompt: deps.chatPersonaPrompt,
       messagesTail: tail.slice(0, -1),
@@ -60,7 +60,7 @@ export function chatRouter(deps: AppDeps): Router {
       text: assistantText,
       created_at: new Date().toISOString(),
     }
-    deps.store.appendMessage(assistant)
+    await deps.store.appendMessage(assistant)
     res.status(201).json({ message_id: userMessage.id, assistant_message: assistant })
   })
 

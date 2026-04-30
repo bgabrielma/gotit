@@ -17,7 +17,7 @@ const pkg = JSON.parse(readFileSync(resolve(pkgRoot, 'package.json'), 'utf8')) a
 }
 
 const store = Store.create({
-  dbPath: cfg.dbPath,
+  databaseUrl: cfg.databaseUrl,
   migrationsDir: resolve(pkgRoot, 'migrations'),
 })
 const llm = LLMConnectorConfig.fromConfig(cfg)

@@ -16,12 +16,12 @@ export function saveRouter(deps: AppDeps): Router {
       return
     }
     const device = req.device!
-    const session = deps.store.getActiveSession(device.id)
+    const session = await deps.store.getActiveSession(device.id)
     if (!session) {
       res.status(409).json({ error: 'no active session' })
       return
     }
-    const tail = deps.store.listMessages({ session_id: session.id, limit: 50 })
+    const tail = await deps.store.listMessages({ session_id: session.id, limit: 50 })
     const lastCapture = [...tail].reverse().find((m) => m.kind === 'screen_capture')
     if (!lastCapture || lastCapture.kind !== 'screen_capture') {
       res.status(422).json({ error: 'active session has no screen capture to save' })
@@ -84,7 +84,7 @@ export function saveRouter(deps: AppDeps): Router {
       ...(plan.instruction ? { instruction: plan.instruction } : {}),
       created_at: new Date().toISOString(),
     }
-    deps.store.appendMessage(record)
+    await deps.store.appendMessage(record)
     const response = SaveResponseSchema.parse({
       vault_path: fullPath,
       save_record_id: record.id,

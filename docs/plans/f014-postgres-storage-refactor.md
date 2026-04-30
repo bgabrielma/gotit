@@ -116,7 +116,7 @@ Run: `pnpm --filter @got-it/api test:unit -- src/__tests__/unit/config.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 1.6: Commit**
+- [x] **Step 1.6: Commit**
 
 ```bash
 git add packages/api/src/config.ts packages/api/src/__tests__/unit/config.test.ts .env.template
@@ -131,7 +131,7 @@ git commit -m "feat(api): switch config to postgres database url"
 - Modify: `packages/api/src/__tests__/helper.ts`
 - Modify: route tests under `packages/api/src/__tests__/integration/routes/`
 
-- [ ] **Step 2.1: Create the test-local fake**
+- [x] **Step 2.1: Create the test-local fake**
 
 Create `packages/api/src/__tests__/fakes/store.ts`.
 
@@ -232,7 +232,7 @@ export function createFakeStoreBackend(): StoreBackend {
 }
 ```
 
-- [ ] **Step 2.2: Update helper types and default store**
+- [x] **Step 2.2: Update helper types and default store**
 
 In `packages/api/src/__tests__/helper.ts`, import `StoreBackend`, remove the `Store` value import, import `createFakeStoreBackend`, change `TestAppOptions.store?: StoreBackend`, and default to `createFakeStoreBackend()`.
 
@@ -270,7 +270,7 @@ export function createTestApp(opts: TestAppOptions = {}): Express {
 }
 ```
 
-- [ ] **Step 2.3: Convert route tests away from `Store.createNull()`**
+- [x] **Step 2.3: Convert route tests away from `Store.createNull()`**
 
 For every route test that currently imports `Store` only to call `Store.createNull()`, remove that import and use `createFakeStoreBackend()`.
 
@@ -288,7 +288,7 @@ it('returns the same device on repeated registration with same install_id', asyn
 })
 ```
 
-- [ ] **Step 2.4: Run route tests to expose async interface work**
+- [x] **Step 2.4: Run route tests to expose async interface work**
 
 Run: `pnpm --filter @got-it/api test:integration`
 
@@ -312,7 +312,7 @@ Commit only after Task 3 makes the tests pass.
 - Modify: `packages/api/src/routes/save.ts`
 - Modify: tests touched by Task 2
 
-- [ ] **Step 3.1: Change route-facing dependency to `StoreBackend`**
+- [x] **Step 3.1: Change route-facing dependency to `StoreBackend`**
 
 In `packages/api/src/app.ts`:
 
@@ -333,7 +333,7 @@ export type AppDeps = {
 }
 ```
 
-- [ ] **Step 3.2: Make `StoreBackend` async**
+- [x] **Step 3.2: Make `StoreBackend` async**
 
 In `packages/api/src/infra/store.ts`, change the interface:
 
@@ -351,7 +351,7 @@ export interface StoreBackend {
 }
 ```
 
-- [ ] **Step 3.3: Update auth middleware**
+- [x] **Step 3.3: Update auth middleware**
 
 In `packages/api/src/middleware/auth.ts`, use `StoreBackend` and await lookup.
 
@@ -377,7 +377,7 @@ export function deviceAuth(store: StoreBackend) {
 }
 ```
 
-- [ ] **Step 3.4: Update route handlers to await store calls**
+- [x] **Step 3.4: Update route handlers to await store calls**
 
 Apply these exact caller rules:
 
@@ -404,13 +404,13 @@ await deps.store.appendMessage(userMessage)
 await deps.store.appendMessage(assistantMessage)
 ```
 
-- [ ] **Step 3.5: Run typecheck to catch missed awaits**
+- [x] **Step 3.5: Run typecheck to catch missed awaits**
 
 Run: `pnpm --filter @got-it/api typecheck`
 
 Expected: FAIL until every route treats store methods as promises.
 
-- [ ] **Step 3.6: Finish route updates and run tests**
+- [x] **Step 3.6: Finish route updates and run tests**
 
 Run:
 

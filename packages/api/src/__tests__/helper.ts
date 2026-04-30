@@ -5,11 +5,12 @@ import type { Express } from 'express'
 import request from 'supertest'
 import { vi } from 'vitest'
 import { createApp, type AppDeps } from '../app.js'
-import { Store } from '../infra/store.js'
+import type { StoreBackend } from '../infra/store.js'
 import { VisionAI } from '../infra/vision-ai.js'
 import { ChatAI } from '../infra/chat-ai.js'
 import { ObsidianWriter } from '../infra/obsidian-writer.js'
 import { DEFAULT_CHAT_PROMPT, DEFAULT_VISION_PROMPT } from '../prompts/defaults.js'
+import { createFakeStoreBackend } from './fakes/store.js'
 
 /**
  * Root directory for API test artifacts written inside the repository.
@@ -33,7 +34,7 @@ export const DEFAULT_ANALYSIS: AnalysisResult = {
 }
 
 type TestAppOptions = {
-  store?: Store
+  store?: StoreBackend
   visionAI?: VisionAI
   chatAI?: ChatAI
   obsidianWriter?: ObsidianWriter
@@ -85,7 +86,7 @@ export function createTestApp(opts: TestAppOptions = {}): Express {
   mkdirSync(TEST_TMP_ROOT, { recursive: true })
 
   return createApp({
-    store: opts.store ?? Store.createNull(),
+    store: opts.store ?? createFakeStoreBackend(),
     visionAI: opts.visionAI ?? createVisionAIMock().instance,
     chatAI: opts.chatAI ?? createChatAIMock().instance,
     obsidianWriter: opts.obsidianWriter ?? createObsidianWriterMock().instance,

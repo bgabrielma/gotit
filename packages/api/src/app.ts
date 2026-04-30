@@ -1,5 +1,5 @@
 import express, { type Express } from 'express'
-import type { Store } from './infra/store.js'
+import type { StoreBackend } from './infra/store.js'
 import type { VisionAI } from './infra/vision-ai.js'
 import type { ChatAI } from './infra/chat-ai.js'
 import type { ObsidianWriter } from './infra/obsidian-writer.js'
@@ -11,7 +11,7 @@ import { chatRouter } from './routes/chat.js'
 import { saveRouter } from './routes/save.js'
 
 export type AppDeps = {
-  store: Store
+  store: StoreBackend
   visionAI: VisionAI
   chatAI: ChatAI
   obsidianWriter: ObsidianWriter

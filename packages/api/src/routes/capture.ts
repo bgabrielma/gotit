@@ -26,7 +26,7 @@ export function captureRouter(deps: AppDeps): Router {
       return
     }
     const device = req.device!
-    const session = deps.store.getActiveSession(device.id)
+    const session = await deps.store.getActiveSession(device.id)
     if (!session) {
       res.status(409).json({ error: 'no active session — call POST /sessions first' })
       return
@@ -63,9 +63,9 @@ export function captureRouter(deps: AppDeps): Router {
       source: sourceParse.data,
       created_at: now,
     }
-    deps.store.appendMessage(captureMessage)
+    await deps.store.appendMessage(captureMessage)
 
-    const tail = deps.store.listMessages({ session_id: session.id, limit: 50 })
+    const tail = await deps.store.listMessages({ session_id: session.id, limit: 50 })
     const userTextStub: Message = {
       id: uuid(),
       session_id: session.id,
@@ -95,7 +95,7 @@ export function captureRouter(deps: AppDeps): Router {
       text: assistantText,
       created_at: new Date().toISOString(),
     }
-    deps.store.appendMessage(assistantMessage)
+    await deps.store.appendMessage(assistantMessage)
 
     res.status(201).json({
       message_id: captureMessage.id,
