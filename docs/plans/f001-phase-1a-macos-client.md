@@ -960,7 +960,7 @@ git commit -m "feat(macos): GotItModels package with Codable DTOs and round-trip
 - Create: `apps/macos/Packages/GotItInfra/Sources/GotItInfra/API/APIClientFactory.swift`
 - Test: `apps/macos/Packages/GotItInfra/Tests/GotItInfraTests/APIClientNullTests.swift`
 
-- [ ] **Step 4.1: Failing test — `NullAPIClient` returns configured response for `health`**
+- [x] **Step 4.1: Failing test — `NullAPIClient` returns configured response for `health`**
 
 `APIClientNullTests.swift`:
 
@@ -990,7 +990,7 @@ import GotItModels
 
 Run: `swift test --package-path apps/macos/Packages/GotItInfra`. Expect: FAIL.
 
-- [ ] **Step 4.2: Implement `APIError.swift`**
+- [x] **Step 4.2: Implement `APIError.swift`**
 
 ```swift
 import Foundation
@@ -1005,7 +1005,7 @@ public enum APIError: Error, Equatable, Sendable {
 }
 ```
 
-- [ ] **Step 4.3: Implement `Endpoint.swift`**
+- [x] **Step 4.3: Implement `Endpoint.swift`**
 
 The endpoint type is a sealed enum; each case carries the inputs the client needs to build a request, plus a discriminator for the null client to look up canned responses. Phantom types are not used — instead `send(_:)` is generic over the response.
 
@@ -1043,7 +1043,7 @@ public enum Endpoint: Sendable {
 }
 ```
 
-- [ ] **Step 4.4: Implement `APIClient.swift`**
+- [x] **Step 4.4: Implement `APIClient.swift`**
 
 ```swift
 import Foundation
@@ -1053,7 +1053,7 @@ public protocol APIClient: Sendable {
 }
 ```
 
-- [ ] **Step 4.5: Implement `NullAPIClient.swift`**
+- [x] **Step 4.5: Implement `NullAPIClient.swift`**
 
 ```swift
 import Foundation
@@ -1090,7 +1090,7 @@ internal actor NullAPIClient: APIClient {
 }
 ```
 
-- [ ] **Step 4.6: Implement `APIClientFactory.swift` (live factory wired in Task 5)**
+- [x] **Step 4.6: Implement `APIClientFactory.swift` (live factory wired in Task 5)**
 
 ```swift
 import Foundation
@@ -1107,7 +1107,7 @@ public enum APIClientFactory {
 }
 ```
 
-- [ ] **Step 4.7: Run tests**
+- [x] **Step 4.7: Run tests**
 
 ```bash
 swift test --package-path apps/macos/Packages/GotItInfra
@@ -1115,7 +1115,7 @@ swift test --package-path apps/macos/Packages/GotItInfra
 
 Expect: PASS.
 
-- [ ] **Step 4.8: Commit**
+- [x] **Step 4.8: Commit**
 
 ```bash
 git add apps/macos/Packages/GotItInfra
