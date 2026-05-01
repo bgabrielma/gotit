@@ -1601,7 +1601,7 @@ git commit -m "feat(infra): KeychainStore (Sec live + null) and InstallIDStore"
 - Test: `Tests/GotItInfraTests/ResolveCollisionTests.swift`
 - Test: `Tests/GotItInfraTests/MarkdownFileWriterLiveTests.swift`
 
-- [ ] **Step 7.1: Failing tests for `resolveCollision`**
+- [x] **Step 7.1: Failing tests for `resolveCollision`**
 
 ```swift
 import Testing
@@ -1638,7 +1638,7 @@ import Testing
 
 Run: FAIL.
 
-- [ ] **Step 7.2: Implement `resolveCollision`**
+- [x] **Step 7.2: Implement `resolveCollision`**
 
 ```swift
 import Foundation
@@ -1660,7 +1660,7 @@ internal func resolveCollision(existing: [String], candidate: String) -> String 
 
 Internal because it is a private implementation detail of the file writer. Tests use `@testable import`. PASS.
 
-- [ ] **Step 7.3: Failing test for live `FileManagerMarkdownWriter`**
+- [x] **Step 7.3: Failing test for live `FileManagerMarkdownWriter`**
 
 ```swift
 @Suite struct MarkdownFileWriterLiveTests {
@@ -1697,7 +1697,7 @@ private func makeTempDir() throws -> URL {
 
 Run: FAIL.
 
-- [ ] **Step 7.4: Implement protocol + factory + live**
+- [x] **Step 7.4: Implement protocol + factory + live**
 
 ```swift
 import Foundation
@@ -1737,7 +1737,7 @@ internal struct NullMarkdownFileWriter: MarkdownFileWriter {
 
 Run: PASS.
 
-- [ ] **Step 7.5: Commit**
+- [x] **Step 7.5: Commit**
 
 ```bash
 git add apps/macos/Packages/GotItInfra
