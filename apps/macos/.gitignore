@@ -1,6 +1,6 @@
 # SPM build artifacts
-Packages/*/.build/
-Packages/*/.swiftpm/
+.build/
+.swiftpm/
 
 # Xcode derived data
 DerivedData/
