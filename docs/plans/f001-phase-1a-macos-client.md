@@ -1957,7 +1957,7 @@ git commit -m "feat(infra): OfflineMonitor with /health probe and scripted null"
 
 `NSMetadataQuery` doesn't lend itself to deterministic unit tests — the manual smoke (spec §11.5 #1) covers it. The plan is null-driven view-model tests that send synthesized events.
 
-- [ ] **Step 10.1: Define protocol and types**
+- [x] **Step 10.1: Define protocol and types**
 
 ```swift
 import Foundation
@@ -1980,7 +1980,7 @@ public enum ScreenshotWatcherFactory {
 }
 ```
 
-- [ ] **Step 10.2: Live wrapper**
+- [x] **Step 10.2: Live wrapper**
 
 ```swift
 import Foundation
@@ -2030,7 +2030,7 @@ internal final class MetadataQueryScreenshotWatcher: NSObject, ScreenshotWatcher
 }
 ```
 
-- [ ] **Step 10.3: Null + scripted**
+- [x] **Step 10.3: Null + scripted**
 
 ```swift
 public actor ScriptedScreenshotWatcher: ScreenshotWatcher {
@@ -2044,7 +2044,7 @@ public actor ScriptedScreenshotWatcher: ScreenshotWatcher {
 }
 ```
 
-- [ ] **Step 10.4: Commit**
+- [x] **Step 10.4: Commit**
 
 ```bash
 git commit -m "feat(infra): ScreenshotWatcher (NSMetadataQuery wrapper) + scripted null"
