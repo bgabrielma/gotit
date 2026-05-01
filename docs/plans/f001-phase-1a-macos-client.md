@@ -261,15 +261,15 @@ Wave 11 Task 25                              ── final validation gate
 - Modify: `packages/api/src/routes/save.ts`
 - Modify: `packages/api/src/__tests__/integration/routes/save.test.ts`
 
-- [ ] **Step 1.1: Drop `SaveResponseSchema` from `packages/shared/src/api.ts`**
+- [x] **Step 1.1: Drop `SaveResponseSchema` from `packages/shared/src/api.ts`**
 
 `SaveDraftResponseSchema` already exists and is what the route should return. Remove the legacy `SaveResponseSchema` / `SaveResponse` exports. Any importer switches to `SaveDraftResponse`.
 
-- [ ] **Step 1.2: Update `packages/shared/src/schemas.test.ts`**
+- [x] **Step 1.2: Update `packages/shared/src/schemas.test.ts`**
 
 Drop the `SaveResponseSchema` round-trip test if present. The existing `SaveDraftResponseSchema` test stays. Run `pnpm --filter @got-it/shared test`; expect PASS.
 
-- [ ] **Step 1.3: Failing integration test for new save behaviour**
+- [x] **Step 1.3: Failing integration test for new save behaviour**
 
 In `packages/api/src/__tests__/integration/routes/save.test.ts`, replace the prior assertion block. The test must:
 
@@ -295,7 +295,7 @@ it('returns vault_relative_path + markdown without touching disk', async () => {
 
 Run: `pnpm --filter @got-it/api test -- save.test.ts`. Expect: FAIL (current handler still writes + returns `vault_path`).
 
-- [ ] **Step 1.4: Rewrite `packages/api/src/routes/save.ts`**
+- [x] **Step 1.4: Rewrite `packages/api/src/routes/save.ts`**
 
 ```typescript
 import { Router } from 'express'
@@ -392,11 +392,11 @@ export function saveRouter(deps: AppDeps): Router {
 
 Run the test from Step 1.3. Expect: PASS.
 
-- [ ] **Step 1.5: Prune unused `obsidianWriter`**
+- [x] **Step 1.5: Prune unused `obsidianWriter`**
 
 If no other route consumes `obsidianWriter`, remove it from `AppDeps`, the live wiring in `server.ts`, the `ObsidianWriter` infra wrapper file, and `obsidian-writer.test.ts`. If any other route still uses it, leave it. Run `pnpm --filter @got-it/api typecheck` and the full `pnpm --filter @got-it/api test` after pruning.
 
-- [ ] **Step 1.6: Run full TS validation**
+- [x] **Step 1.6: Run full TS validation**
 
 ```bash
 pnpm typecheck && pnpm lint && pnpm test && pnpm purity-check
@@ -404,7 +404,7 @@ pnpm typecheck && pnpm lint && pnpm test && pnpm purity-check
 
 Expect: all green.
 
-- [ ] **Step 1.7: Commit**
+- [x] **Step 1.7: Commit**
 
 ```bash
 git add packages/shared packages/api
