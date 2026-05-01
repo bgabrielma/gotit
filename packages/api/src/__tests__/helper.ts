@@ -8,7 +8,6 @@ import { createApp, type AppDeps } from '../app.js'
 import type { StoreBackend } from '../infra/store.js'
 import { VisionAI } from '../infra/vision-ai.js'
 import { ChatAI } from '../infra/chat-ai.js'
-import { ObsidianWriter } from '../infra/obsidian-writer.js'
 import { DEFAULT_CHAT_PROMPT, DEFAULT_VISION_PROMPT } from '../prompts/defaults.js'
 import { createFakeStoreBackend } from './fakes/store.js'
 
@@ -37,12 +36,8 @@ type TestAppOptions = {
   store?: StoreBackend
   visionAI?: VisionAI
   chatAI?: ChatAI
-  obsidianWriter?: ObsidianWriter
 } & Partial<
-  Pick<
-    AppDeps,
-    'visionPrompt' | 'chatPersonaPrompt' | 'vaultPath' | 'captureFolder' | 'dataDir' | 'version'
-  >
+  Pick<AppDeps, 'visionPrompt' | 'chatPersonaPrompt' | 'captureFolder' | 'dataDir' | 'version'>
 >
 
 /**
@@ -89,10 +84,8 @@ export function createTestApp(opts: TestAppOptions = {}): Express {
     store: opts.store ?? createFakeStoreBackend(),
     visionAI: opts.visionAI ?? createVisionAIMock().instance,
     chatAI: opts.chatAI ?? createChatAIMock().instance,
-    obsidianWriter: opts.obsidianWriter ?? createObsidianWriterMock().instance,
     visionPrompt: opts.visionPrompt ?? DEFAULT_VISION_PROMPT,
     chatPersonaPrompt: opts.chatPersonaPrompt ?? DEFAULT_CHAT_PROMPT,
-    vaultPath: opts.vaultPath ?? tmpPath('vault'),
     captureFolder: opts.captureFolder ?? DEFAULT_CAPTURE_FOLDER,
     dataDir: opts.dataDir ?? tmpPath('data'),
     version: opts.version ?? 'test',
@@ -145,37 +138,6 @@ export function createChatAIMock(
   return {
     instance: ChatAI.fromBackend({ complete }),
     complete,
-  }
-}
-
-/**
- * Creates a mocked Obsidian writer wrapped in the ObsidianWriter class.
- */
-export function createObsidianWriterMock(
-  opts: {
-    writeFailure?: Error
-    existing?: Set<string>
-  } = {}
-): {
-  instance: ObsidianWriter
-  write: ReturnType<typeof vi.fn>
-  listFolder: ReturnType<typeof vi.fn>
-} {
-  const write = vi.fn(
-    async ({ vaultPath, relativePath }: { vaultPath: string; relativePath: string }) => {
-      if (opts.writeFailure) {
-        throw opts.writeFailure
-      }
-      return { fullPath: join(vaultPath, relativePath) }
-    }
-  )
-
-  const listFolder = vi.fn(async () => opts.existing ?? new Set<string>())
-
-  return {
-    instance: ObsidianWriter.fromBackend({ write, listFolder }),
-    write,
-    listFolder,
   }
 }
 

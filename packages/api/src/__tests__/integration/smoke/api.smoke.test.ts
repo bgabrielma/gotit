@@ -1,13 +1,12 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import request from 'supertest'
-import { join, resolve } from 'node:path'
+import { resolve } from 'node:path'
 import { readFileSync } from 'node:fs'
 import { ChatAI } from '../../../infra/chat-ai.js'
 import { loadConfig } from '../../../config.js'
 import { LLMConnectorConfig } from '../../../infra/llm-connector-config.js'
-import { ObsidianWriter } from '../../../infra/obsidian-writer.js'
 import { VisionAI } from '../../../infra/vision-ai.js'
-import { cleanupDir, ensureCleanDir, listFiles, setupAuthedApp, tmpPath } from '../../helper.js'
+import { cleanupDir, ensureCleanDir, setupAuthedApp, tmpPath } from '../../helper.js'
 
 /**
  * Fixture used by smoke tests for end-to-end capture checks.
@@ -18,9 +17,6 @@ const screenshotPath = resolve('src/__tests__/fixtures/screenshot-sample.png')
  */
 const smokeLlmConfig = LLMConnectorConfig.fromConfig(loadConfig(process.env))
 
-const SMOKE_VAULT_PATH = tmpPath('smoke-vault')
-const SMOKE_CAPTURE_FOLDER = 'obsidian-smoke'
-const SMOKE_CAPTURE_DIR = join(SMOKE_VAULT_PATH, SMOKE_CAPTURE_FOLDER)
 const SMOKE_DATA_DIR = tmpPath('smoke-data')
 
 /**
@@ -30,9 +26,6 @@ async function setupSmokeApp() {
   return setupAuthedApp({
     visionAI: VisionAI.create(smokeLlmConfig),
     chatAI: ChatAI.create(smokeLlmConfig),
-    obsidianWriter: ObsidianWriter.create(),
-    vaultPath: SMOKE_VAULT_PATH,
-    captureFolder: SMOKE_CAPTURE_FOLDER,
     dataDir: SMOKE_DATA_DIR,
     version: 'smoke-test',
   })
@@ -66,15 +59,13 @@ describe('LLM smoke integration', () => {
   }, 120_000)
 })
 
-describe('Obsidian real integration', () => {
+describe('Save draft smoke integration', () => {
   beforeAll(() => {
-    cleanupDir(SMOKE_VAULT_PATH)
     cleanupDir(SMOKE_DATA_DIR)
-    ensureCleanDir(SMOKE_VAULT_PATH)
     ensureCleanDir(SMOKE_DATA_DIR)
   })
 
-  it('captures a screenshot, chats, saves to vault, file has valid content', async () => {
+  it('captures a screenshot, chats, and returns a save draft without writing to disk', async () => {
     const { app, token } = await setupSmokeApp()
 
     const captureRes = await request(app)
@@ -98,12 +89,8 @@ describe('Obsidian real integration', () => {
       .send({})
 
     expect(saveRes.status).toBe(201)
-
-    const files = listFiles(SMOKE_CAPTURE_DIR)
-    expect(files.length).toBe(1)
-    const contents = readFileSync(files[0]!, 'utf-8')
-    expect(contents).toMatch(/^---\n/)
-    expect(contents).toMatch(/captured_at:/)
-    expect(contents).toMatch(/session_id:/)
+    expect(saveRes.body.vault_relative_path).toMatch(/^GotIt!\/\d{4}-\d{2}-\d{2}-/)
+    expect(saveRes.body.markdown).toContain('# ')
+    expect(saveRes.body.save_record_id).toBeTruthy()
   }, 240_000)
 })
