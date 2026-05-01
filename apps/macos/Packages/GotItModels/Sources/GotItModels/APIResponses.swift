@@ -1,0 +1,48 @@
+import Foundation
+
+public struct DeviceRegistrationResponse: Codable, Equatable, Sendable {
+    public let deviceID: String
+    public let token: String
+    enum CodingKeys: String, CodingKey { case deviceID = "device_id", token }
+}
+
+public struct CaptureResponse: Codable, Equatable, Sendable {
+    public let messageID: String
+    public let analysis: AnalysisResult
+    public let assistantMessage: AssistantPayload
+    enum CodingKeys: String, CodingKey {
+        case messageID = "message_id", analysis, assistantMessage = "assistant_message"
+    }
+}
+
+public struct ChatResponse: Codable, Equatable, Sendable {
+    public let messageID: String
+    public let assistantMessage: AssistantPayload
+    enum CodingKeys: String, CodingKey { case messageID = "message_id", assistantMessage = "assistant_message" }
+}
+
+public struct SaveDraftResponse: Codable, Equatable, Sendable {
+    public let vaultRelativePath: String
+    public let markdown: String
+    public let saveRecordID: String
+    enum CodingKeys: String, CodingKey {
+        case vaultRelativePath = "vault_relative_path", markdown, saveRecordID = "save_record_id"
+    }
+}
+
+public struct ActiveSessionResponse: Codable, Equatable, Sendable {
+    public let session: Session
+    public let messagesTail: [Message]
+    enum CodingKeys: String, CodingKey { case session, messagesTail = "messages_tail" }
+}
+
+public struct CreateSessionResponse: Codable, Equatable, Sendable {
+    public let sessionID: String
+    public let startedAt: String
+    enum CodingKeys: String, CodingKey { case sessionID = "session_id", startedAt = "started_at" }
+}
+
+public struct HealthResponse: Codable, Equatable, Sendable {
+    public let ok: Bool
+    public let version: String
+}

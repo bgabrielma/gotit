@@ -592,7 +592,7 @@ git commit -m "chore(macos): scaffold Xcode workspace + three SPM packages (Mode
 - Test: `apps/macos/Packages/GotItModels/Tests/GotItModelsTests/AnalysisResultCodableTests.swift`
 - Test: `apps/macos/Packages/GotItModels/Tests/GotItModelsTests/APIShapesTests.swift`
 
-- [ ] **Step 3.1: Failing test for `Message` round-trip with the four kinds**
+- [x] **Step 3.1: Failing test for `Message` round-trip with the four kinds**
 
 `MessageCodableTests.swift`:
 
@@ -644,7 +644,7 @@ import Foundation
 
 Run: `swift test --package-path apps/macos/Packages/GotItModels`. Expect: FAIL (`Message` undefined).
 
-- [ ] **Step 3.2: Implement `Message`**
+- [x] **Step 3.2: Implement `Message`**
 
 `Message.swift`:
 
@@ -761,7 +761,7 @@ public enum Message: Codable, Equatable, Sendable {
 
 The discriminator pattern keeps wire `kind` in lockstep with the TS enum.
 
-- [ ] **Step 3.3: Implement `AnalysisResult`**
+- [x] **Step 3.3: Implement `AnalysisResult`**
 
 `AnalysisResult.swift`:
 
@@ -811,7 +811,7 @@ public struct AnalysisResult: Codable, Equatable, Sendable {
 }
 ```
 
-- [ ] **Step 3.4: Implement `Session.swift`**
+- [x] **Step 3.4: Implement `Session.swift`**
 
 ```swift
 import Foundation
@@ -830,7 +830,7 @@ public struct Session: Codable, Equatable, Sendable {
 }
 ```
 
-- [ ] **Step 3.5: Implement `APIRequests.swift` and `APIResponses.swift`**
+- [x] **Step 3.5: Implement `APIRequests.swift` and `APIResponses.swift`**
 
 `APIRequests.swift`:
 
@@ -915,7 +915,7 @@ public struct DeviceRegistrationRequest: Codable, Equatable, Sendable {
 }
 ```
 
-- [ ] **Step 3.6: Add `APIShapesTests.swift` (round-trip every response shape against canonical fixtures)**
+- [x] **Step 3.6: Add `APIShapesTests.swift` (round-trip every response shape against canonical fixtures)**
 
 Mirror at least one fixture for each response. For brevity, one example:
 
@@ -932,7 +932,7 @@ Mirror at least one fixture for each response. For brevity, one example:
 
 Add equivalent decode tests for `CaptureResponse`, `ChatResponse`, `ActiveSessionResponse`, `CreateSessionResponse`, `DeviceRegistrationResponse`, `HealthResponse`. Each test is a single JSON literal that mirrors the actual server response shape — reuse the snippets shown for those endpoints in `packages/api/src/__tests__/integration/routes/`.
 
-- [ ] **Step 3.7: Run all `GotItModels` tests**
+- [x] **Step 3.7: Run all `GotItModels` tests**
 
 ```bash
 swift test --package-path apps/macos/Packages/GotItModels
@@ -940,7 +940,7 @@ swift test --package-path apps/macos/Packages/GotItModels
 
 Expect: PASS.
 
-- [ ] **Step 3.8: Commit**
+- [x] **Step 3.8: Commit**
 
 ```bash
 git add apps/macos/Packages/GotItModels
