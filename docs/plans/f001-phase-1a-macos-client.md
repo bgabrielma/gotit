@@ -1864,7 +1864,7 @@ git commit -m "feat(infra): SecureBookmarkStore for security-scoped vault bookma
 - Create: `Network/OfflineMonitor.swift` (protocol + factory + live + null)
 - Test: `Tests/GotItInfraTests/OfflineMonitorTests.swift`
 
-- [ ] **Step 9.1: Failing tests**
+- [x] **Step 9.1: Failing tests**
 
 ```swift
 @Suite struct OfflineMonitorTests {
@@ -1884,7 +1884,7 @@ git commit -m "feat(infra): SecureBookmarkStore for security-scoped vault bookma
 }
 ```
 
-- [ ] **Step 9.2: Protocol + null + live**
+- [x] **Step 9.2: Protocol + null + live**
 
 ```swift
 import Foundation
