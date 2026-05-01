@@ -60,7 +60,7 @@ Spec §9.3 requires `OfflineMonitor.recheck()` (cheap `GET /health`) to run befo
 
 ### Design notes (clarifications captured during plan review)
 
-**`POST /save/:id/result` is dropped from Phase 1a.** Spec §11 frames it as "best-effort backend reporting" feeding the future history tab (Phase 1d, out of scope) and the F013 plugin-delivery state machine. Phase 1a never reads `delivered`, so cutting the route, the `SaveResultRequest` schema, and the client fire-and-forget block removes pure carrying cost. Move it to F013's prep when that feature opens. Spec §10.2's amendment list is reduced accordingly: only the `/save` draft contract change is needed now.
+**`POST /save/:id/result` is dropped from Phase 1a.** Earlier drafts framed it as "best-effort backend reporting" feeding the future history tab (Phase 1d, out of scope) and the F013 plugin-delivery state machine. Phase 1a never reads delivery status, so cutting the route, the `SaveResultRequest` schema, and the client fire-and-forget block removes pure carrying cost. Move it to F013's prep when that feature opens. Spec §10.2's amendment list is reduced accordingly: only the `/save` draft contract change is needed now.
 
 **Save flow, end-to-end:**
 
@@ -79,14 +79,10 @@ The split exists because the backend has no business reaching the user's filesys
 got-it/
 ├── packages/api/
 │   ├── src/routes/save.ts                              (modify — return draft, drop fs write)
-│   ├── src/routes/save-result.ts                       (create — POST /save/:id/result)
-│   ├── src/app.ts                                       (modify — mount save-result router)
-│   ├── src/infra/store.ts                               (modify — save_record state machine: pending|delivered|failed)
 │   └── src/__tests__/integration/routes/
-│       ├── save.test.ts                                 (modify — assert draft response, no fs side effect)
-│       └── save-result.test.ts                          (create)
+│       └── save.test.ts                                 (modify — assert draft response, no fs side effect)
 ├── packages/shared/
-│   └── src/api.ts                                       (modify — add SaveResultRequestSchema; mark SaveResponseSchema deprecated and remove from save route)
+│   └── src/api.ts                                       (modify — remove legacy SaveResponseSchema from save route)
 │
 ├── apps/macos/                                          (greenfield — currently empty)
 │   ├── GotIt.xcodeproj/                                 (create — thin app target, signing, entitlements)
@@ -374,7 +370,7 @@ export function saveRouter(deps: AppDeps): Router {
       id: uuid(),
       session_id: session.id,
       kind: 'save_record',
-      vault_path: relativePath, // stored as the relative draft path; updated on /save/:id/result
+      vault_path: relativePath, // stored as the relative draft path; client writes the file
       ...(plan.instruction ? { instruction: plan.instruction } : {}),
       created_at: new Date().toISOString(),
     }

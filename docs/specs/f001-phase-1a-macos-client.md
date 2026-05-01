@@ -144,8 +144,7 @@ Example (Save):
 4. **READ** — `FileManager` enumerates existing filenames in the captures subfolder.
 5. **CORE** — `resolveCollision(existing:, candidate:) -> String` (pure).
 6. **WRITE** — `MarkdownFileWriter.write(folderURL:, relativePath:, markdown:)` performs atomic write.
-7. **WRITE** — `APIClient.send(.saveResult(id, delivered: true, finalPath))` (best-effort).
-8. **WRITE** — view model emits a toast event consumed by the panel.
+7. **WRITE** — view model emits a toast event consumed by the panel.
 
 ## 5. Functional Core in Swift
 
@@ -243,7 +242,7 @@ No background polling.
 
 - Backend `POST /save { instruction? }` returns `{ vault_relative_path, markdown, save_record_id }`. Backend never touches the filesystem.
 - Client resolves `SecureBookmarkStore` to the user-picked vault root, joins `vault_relative_path`, runs `resolveCollision(existing:, candidate:)`, writes via `MarkdownFileWriter` (atomic write).
-- Best-effort: `POST /save/:id/result { delivered: true, final_path }` to keep backend `save_record` accurate.
+- Phase 1a does not report save delivery status back to the backend. Delivery state is deferred to F013's plugin path.
 - UI confirmation toast: "Saved to GotIt!/2026-04-30-1542-stripe-docs.md" with click → `obsidian://open?path=...`. Fallback: Finder reveal (`NSWorkspace.activateFileViewerSelecting:`).
 - The phrase "Obsidian Vault API" does **not** apply to Phase 1a. The client writes a plain Markdown file to a folder. Renaming in spec terminology and code: **`MarkdownFileWriter`**, not `VaultWriter`.
 
@@ -262,7 +261,6 @@ enum Endpoint<Response: Decodable> {
     case capture(image: Data, source: CaptureSource) // POST /capture (multipart)
     case chat(text: String, source: ChatSource)     // POST /chat
     case save(instruction: String?)                  // POST /save
-    case saveResult(id: String, delivered: Bool, finalPath: String?) // POST /save/:id/result (best-effort)
 }
 ```
 
@@ -300,14 +298,14 @@ Cross-references for F013 (immediately after F001 MVP completes; before F002): t
 
 The parent spec (`docs/specs/f001-screen-capture-mvp.md`) needs these small, in-place updates when this sub-spec is merged:
 
-| Section               | Change                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| §5 Triggers           | Replace the "Global keybind capture" row with: native macOS screenshot routing via `NSMetadataQuery`. Replace "Direct invoke (Cmd+Opt+G)" hotkey with "Open panel hotkey (Cmd+Shift+Space, default; rebindable)". Drop `Cmd+Shift+G` capture hotkey.                                                                                                                                                                                |
-| §6.2 Layout           | Phase 1a panel input row: `[text field] [📎 attach]  ·  [Look again] [Save] [Reset]`. Mic 🎤 and Listen 👂 buttons hidden until 1b/1c.                                                                                                                                                                                                                                                                                              |
-| §9 Obsidian Save      | Rename to "Markdown Save". §9.4 Delivery contract: macOS client writes the Markdown directly to the configured vault folder via `FileManager` (Phase 1a). Plugin-based delivery is the next planned feature (see BOARD.md F0NEW). Drop "Vault API" / `Vault.process()` wording from Phase 1a description.                                                                                                                           |
-| §11 API Contracts     | **Add new endpoint** `POST /save/:id/result { delivered, final_path }` (best-effort client → backend reporting; backend persists outcome on `save_record` for history accuracy). Note that `POST /device` is idempotent on `install_id` and that all other endpoints return 401 on missing/unknown/revoked token. These are backend amendments required by Phase 1a Plan B; the implementor must update `packages/api` accordingly. |
-| §13.2 Configuration   | Note that `apps/macos` config lives in `AppConfig.swift` (this spec §6); same rule applies — no hardcoded URLs/paths in source.                                                                                                                                                                                                                                                                                                     |
-| §16.1 Sprint contract | Add manual smoke checklist (this spec §11.5).                                                                                                                                                                                                                                                                                                                                                                                       |
+| Section               | Change                                                                                                                                                                                                                                                                                                                                                        |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| §5 Triggers           | Replace the "Global keybind capture" row with: native macOS screenshot routing via `NSMetadataQuery`. Replace "Direct invoke (Cmd+Opt+G)" hotkey with "Open panel hotkey (Cmd+Shift+Space, default; rebindable)". Drop `Cmd+Shift+G` capture hotkey.                                                                                                          |
+| §6.2 Layout           | Phase 1a panel input row: `[text field] [📎 attach]  ·  [Look again] [Save] [Reset]`. Mic 🎤 and Listen 👂 buttons hidden until 1b/1c.                                                                                                                                                                                                                        |
+| §9 Obsidian Save      | Rename to "Markdown Save". §9.4 Delivery contract: macOS client writes the Markdown directly to the configured vault folder via `FileManager` (Phase 1a). Plugin-based delivery is the next planned feature (see BOARD.md F0NEW). Drop "Vault API" / `Vault.process()` wording from Phase 1a description.                                                     |
+| §11 API Contracts     | Update `POST /save` to return `{ vault_relative_path, markdown, save_record_id }` without writing to disk. Note that `POST /device` is idempotent on `install_id` and that all other endpoints return 401 on missing/unknown/revoked token. These are backend amendments required by Phase 1a Plan B; the implementor must update `packages/api` accordingly. |
+| §13.2 Configuration   | Note that `apps/macos` config lives in `AppConfig.swift` (this spec §6); same rule applies — no hardcoded URLs/paths in source.                                                                                                                                                                                                                               |
+| §16.1 Sprint contract | Add manual smoke checklist (this spec §11.5).                                                                                                                                                                                                                                                                                                                 |
 
 These are mechanical edits performed during the spec write step; no design changes beyond what is captured here.
 
