@@ -5,27 +5,28 @@
 ## Current Sprint
 
 **Sprint:** F001 Phase 1a — Plan B (macOS client)
-**Status:** Backend complete and revalidated (9.5/10). Starting Plan B: macOS native client (Swift/SwiftUI).
+**Status:** Plan B (macOS client) spec and plan complete, pre-implementation review passed. Ready for implementation.
 **Started:** 2026-04-28
 **Backend validated:** 2026-04-29
 **Backend revalidated:** 2026-04-30
-**Plan B started:** 2026-04-29
+**Plan B spec written:** 2026-04-30
+**Plan B plan reviewed:** 2026-05-01
 
 ## Feature Status
 
-| Feature                          | Status                                  | Tasks                                 | Last Validated                           | Score | Blocker |
-| -------------------------------- | --------------------------------------- | ------------------------------------- | ---------------------------------------- | ----- | ------- |
-| F001 Screen Capture + Chat MVP   | Phase 1a Plan B (macOS client) starting | 28/28 backend tasks; 0/? client tasks | 2026-04-30 (backend Plan A revalidation) | 9.5   | None    |
-| F002 Advanced Obsidian Workflows | Blocked                                 | 0/0                                   | —                                        | —     | F001    |
-| F003 Advanced Audio Workflows    | Blocked                                 | 0/0                                   | —                                        | —     | F001    |
-| F004 Custom System Prompt UI     | Blocked                                 | 0/0                                   | —                                        | —     | F001    |
-| F005 Stealth Rendering           | Blocked                                 | 0/0                                   | —                                        | —     | F001    |
+| Feature                          | Status                                                  | Tasks                                  | Last Validated                           | Score | Blocker |
+| -------------------------------- | ------------------------------------------------------- | -------------------------------------- | ---------------------------------------- | ----- | ------- |
+| F001 Screen Capture + Chat MVP   | Phase 1a Plan B (macOS client) ready for implementation | 28/28 backend tasks; 0/25 client tasks | 2026-04-30 (backend Plan A revalidation) | 9.5   | None    |
+| F002 Advanced Obsidian Workflows | Blocked                                                 | 0/0                                    | —                                        | —     | F001    |
+| F003 Advanced Audio Workflows    | Blocked                                                 | 0/0                                    | —                                        | —     | F001    |
+| F004 Custom System Prompt UI     | Blocked                                                 | 0/0                                    | —                                        | —     | F001    |
+| F005 Stealth Rendering           | Blocked                                                 | 0/0                                    | —                                        | —     | F001    |
 
 ## Active Artifacts
 
 - Spec: `docs/specs/f001-screen-capture-mvp.md` (sprint contract §16.1)
 - Plan A (backend): `docs/plans/f001-phase-1a-backend.md` (28 tasks, COMPLETE, revalidated 9.5/10)
-- Plan B (macOS client): _pending_ — needs brainstorming → spec → plan
+- Plan B (macOS client): `docs/plans/f001-phase-1a-macos-client.md` (25 tasks, ready for implementation — pre-implementation review passed 2026-05-01)
 - Phases: 1a (current — Plan B in progress), 1b (mic), 1c (Listen), 1d (history)
 
 ## Validation Log

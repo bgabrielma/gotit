@@ -10,7 +10,7 @@
   - Depends on: _none_
   - Parent spec: `docs/specs/f001-screen-capture-mvp.md` ✓
   - Phase 1a Plan A (backend): `docs/plans/f001-phase-1a-backend.md` ✓ **complete, validated 9.4/10 on 2026-04-29**
-  - Phase 1a Plan B (macOS client): `docs/specs/f001-phase-1a-macos-client.md` ✓ — implementation plan pending (`docs/plans/f001-phase-1a-macos-client.md` to be written next)
+  - Phase 1a Plan B (macOS client): `docs/specs/f001-phase-1a-macos-client.md` ✓ — `docs/plans/f001-phase-1a-macos-client.md` ✓ **ready for implementation** (pre-implementation review passed 2026-05-01, 25 tasks)
   - Phase 1b (mic), 1c (Listen), 1d (history): not started
 
 - [x] **F014** Postgres Storage Refactor (docker-compose) — Replace the SQLite `Store` infrastructure wrapper in `packages/api` with Postgres provisioned via a single `.env`-driven Docker Compose file for local development and single-host production deployment. Small, scoped refactor: swap the wrapper implementation, port the migration files (`packages/api/migrations/`) to Postgres dialect, add `docker-compose.yml`, update `.env.template` (e.g., `GOTIT_DATABASE_URL`). No product behavior change. **Top priority before F013** — validated 2026-04-30 (see `STATUS.md`).
