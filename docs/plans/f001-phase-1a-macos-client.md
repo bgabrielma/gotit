@@ -1413,7 +1413,7 @@ git commit -m "feat(infra): URLSessionAPIClient with token attach, 5xx retry, an
 - Create: `Keychain/InstallIDStore.swift` (UserDefaults-backed UUID)
 - Test: `Tests/GotItInfraTests/KeychainStoreLiveTests.swift`
 
-- [ ] **Step 6.1: Failing test for live Keychain wrapper**
+- [x] **Step 6.1: Failing test for live Keychain wrapper**
 
 Use a unique service name per test run so parallel tests don't collide and to avoid the developer's real Keychain entries:
 
@@ -1438,7 +1438,7 @@ import Foundation
 }
 ```
 
-- [ ] **Step 6.2: Define the protocol fully**
+- [x] **Step 6.2: Define the protocol fully**
 
 ```swift
 import Foundation
@@ -1450,7 +1450,7 @@ public protocol KeychainStore: Sendable {
 }
 ```
 
-- [ ] **Step 6.3: Implement `SecKeychainStore`**
+- [x] **Step 6.3: Implement `SecKeychainStore`**
 
 Use `kSecClassGenericPassword` with `kSecAttrService` + `kSecAttrAccount`. Standard Apple sample code. Wrap synchronous `SecItem*` calls inside an actor for thread safety.
 
@@ -1513,7 +1513,7 @@ internal actor SecKeychainStore: KeychainStore {
 }
 ```
 
-- [ ] **Step 6.4: Implement `NullKeychainStore`**
+- [x] **Step 6.4: Implement `NullKeychainStore`**
 
 ```swift
 internal actor NullKeychainStore: KeychainStore {
@@ -1525,7 +1525,7 @@ internal actor NullKeychainStore: KeychainStore {
 }
 ```
 
-- [ ] **Step 6.5: `KeychainStoreFactory.swift`**
+- [x] **Step 6.5: `KeychainStoreFactory.swift`**
 
 ```swift
 public enum KeychainStoreFactory {
@@ -1538,7 +1538,7 @@ public enum KeychainStoreFactory {
 }
 ```
 
-- [ ] **Step 6.6: `InstallIDStore.swift`**
+- [x] **Step 6.6: `InstallIDStore.swift`**
 
 ```swift
 import Foundation
@@ -1573,7 +1573,7 @@ internal struct FixedInstallIDStore: InstallIDStore {
 }
 ```
 
-- [ ] **Step 6.7: Run all infra tests**
+- [x] **Step 6.7: Run all infra tests**
 
 ```bash
 swift test --package-path apps/macos/Packages/GotItInfra
@@ -1581,7 +1581,7 @@ swift test --package-path apps/macos/Packages/GotItInfra
 
 Expect: PASS. The 401 re-pair test from Task 5 now uses the real `KeychainStoreFactory.makeNull` instead of a placeholder.
 
-- [ ] **Step 6.8: Commit**
+- [x] **Step 6.8: Commit**
 
 ```bash
 git add apps/macos/Packages/GotItInfra
