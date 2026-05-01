@@ -424,7 +424,7 @@ git commit -m "feat(api): align /save with spec (return draft body, drop server-
 - Create: `apps/macos/App/Info.plist`
 - Create: `apps/macos/App/GotIt.entitlements`
 
-- [ ] **Step 2.1: Verify Xcode 16+ is installed**
+- [x] **Step 2.1: Verify Xcode 16+ is installed**
 
 ```bash
 xcodebuild -version
@@ -432,7 +432,7 @@ xcodebuild -version
 
 Expect: `Xcode 16.x` or higher (Swift Testing requirement, sub-spec §12).
 
-- [ ] **Step 2.2: Create the empty Xcode project**
+- [x] **Step 2.2: Create the empty Xcode project**
 
 Open Xcode → File → New → Project → macOS → App. Fields:
 
@@ -447,7 +447,7 @@ Open Xcode → File → New → Project → macOS → App. Fields:
 
 Save in `apps/macos/`. Move the generated `GotIt/` source folder to `apps/macos/App/` and update the project's group reference. Delete the auto-generated `ContentView.swift` and `GotItApp.swift` — Task 24 creates them deliberately.
 
-- [ ] **Step 2.3: Create `apps/macos/Packages/GotItModels/Package.swift`**
+- [x] **Step 2.3: Create `apps/macos/Packages/GotItModels/Package.swift`**
 
 ```swift
 // swift-tools-version:5.10
@@ -468,7 +468,7 @@ let package = Package(
 
 Add empty `Sources/GotItModels/.gitkeep` and `Tests/GotItModelsTests/.gitkeep` so SPM resolves.
 
-- [ ] **Step 2.4: Create `apps/macos/Packages/GotItInfra/Package.swift`**
+- [x] **Step 2.4: Create `apps/macos/Packages/GotItInfra/Package.swift`**
 
 ```swift
 // swift-tools-version:5.10
@@ -500,7 +500,7 @@ let package = Package(
 )
 ```
 
-- [ ] **Step 2.5: Create `apps/macos/Packages/GotItUI/Package.swift`**
+- [x] **Step 2.5: Create `apps/macos/Packages/GotItUI/Package.swift`**
 
 ```swift
 // swift-tools-version:5.10
@@ -523,11 +523,11 @@ let package = Package(
 )
 ```
 
-- [ ] **Step 2.6: Add the three local packages as `GotIt` app target dependencies**
+- [x] **Step 2.6: Add the three local packages as `GotIt` app target dependencies**
 
 In Xcode: select the `GotIt` app target → Frameworks, Libraries, and Embedded Content → `+` → Add Files… → pick each of the three `Package.swift` files. Mark all three as **Embed & Sign**. Confirm `GotItUI` appears in the dropdown.
 
-- [ ] **Step 2.7: Configure `Info.plist` for menu-bar-only**
+- [x] **Step 2.7: Configure `Info.plist` for menu-bar-only**
 
 `apps/macos/App/Info.plist` (start from the auto-generated one):
 
@@ -541,7 +541,7 @@ In Xcode: select the `GotIt` app target → Frameworks, Libraries, and Embedded 
 
 (`NSScreenCaptureUsageDescription` is the modern key; some macOS versions also honour `NSCameraUsageDescription` style. Add only the screen capture key — mic is Phase 1b.)
 
-- [ ] **Step 2.8: Configure entitlements**
+- [x] **Step 2.8: Configure entitlements**
 
 `apps/macos/App/GotIt.entitlements`:
 
@@ -560,7 +560,7 @@ App Sandbox is **off** for Phase 1a so the security-scoped bookmark + arbitrary 
 
 In Xcode → Signing & Capabilities, link the entitlements file.
 
-- [ ] **Step 2.9: Verify the workspace builds**
+- [x] **Step 2.9: Verify the workspace builds**
 
 ```bash
 cd apps/macos
@@ -569,7 +569,7 @@ xcodebuild build -scheme GotIt -destination "platform=macOS" -quiet
 
 Expect: `** BUILD SUCCEEDED **`. The app does nothing yet but compiles.
 
-- [ ] **Step 2.10: Commit**
+- [x] **Step 2.10: Commit**
 
 ```bash
 git add apps/macos

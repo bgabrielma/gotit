@@ -1,0 +1,13 @@
+# SPM build artifacts
+Packages/*/.build/
+Packages/*/.swiftpm/
+
+# Xcode derived data
+DerivedData/
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+
+# Xcode user-specific data inside xcodeproj
+GotIt.xcodeproj/project.xcworkspace/xcuserdata/
+GotIt.xcodeproj/xcuserdata/
