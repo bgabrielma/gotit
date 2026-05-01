@@ -1755,7 +1755,7 @@ git commit -m "feat(infra): MarkdownFileWriter + pure resolveCollision helper"
 - Create: `Bookmarks/NullBookmarkStore.swift`
 - Test: `Tests/GotItInfraTests/SecureBookmarkStoreLiveTests.swift`
 
-- [ ] **Step 8.1: Failing test (live, tmp dir)**
+- [x] **Step 8.1: Failing test (live, tmp dir)**
 
 ```swift
 @Suite struct SecureBookmarkStoreLiveTests {
@@ -1779,7 +1779,7 @@ git commit -m "feat(infra): MarkdownFileWriter + pure resolveCollision helper"
 }
 ```
 
-- [ ] **Step 8.2: Implement protocol + types**
+- [x] **Step 8.2: Implement protocol + types**
 
 ```swift
 import Foundation
@@ -1847,7 +1847,7 @@ internal final class NullBookmarkStore: SecureBookmarkStore, @unchecked Sendable
 }
 ```
 
-- [ ] **Step 8.3: Run tests, expect PASS, commit**
+- [x] **Step 8.3: Run tests, expect PASS, commit**
 
 ```bash
 swift test --package-path apps/macos/Packages/GotItInfra
