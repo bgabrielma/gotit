@@ -2466,7 +2466,7 @@ git commit -am "feat(ui): ChatViewModel with send/reset/loadActive against null 
 - Test: `Tests/GotItUITests/SaveFlowTests.swift`
 - Test: `Tests/GotItUITests/OfflineStateTests.swift`
 
-- [ ] **Step 15.1: Failing test — Look again happy path**
+- [x] **Step 15.1: Failing test — Look again happy path**
 
 ```swift
 @Suite struct PanelViewModelTests {
@@ -2508,7 +2508,7 @@ func makeVM(api: APIClient,
 }
 ```
 
-- [ ] **Step 15.2: Implement**
+- [x] **Step 15.2: Implement**
 
 ```swift
 import Foundation
@@ -2583,7 +2583,7 @@ public final class PanelViewModel: ObservableObject {
 }
 ```
 
-- [ ] **Step 15.3: `SaveFlowTests.swift` — end-to-end Save with tmp dir + null infra**
+- [x] **Step 15.3: `SaveFlowTests.swift` — end-to-end Save with tmp dir + null infra**
 
 ```swift
 @Suite struct SaveFlowTests {
@@ -2603,7 +2603,7 @@ public final class PanelViewModel: ObservableObject {
 }
 ```
 
-- [ ] **Step 15.4: `OfflineStateTests.swift`**
+- [x] **Step 15.4: `OfflineStateTests.swift`**
 
 ```swift
 @Suite struct OfflineStateTests {
@@ -2617,7 +2617,7 @@ public final class PanelViewModel: ObservableObject {
 }
 ```
 
-- [ ] **Step 15.5: Run, PASS, commit**
+- [x] **Step 15.5: Run, PASS, commit**
 
 ```bash
 swift test --package-path apps/macos/Packages/GotItUI
