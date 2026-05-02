@@ -3135,7 +3135,7 @@ git commit -am "feat(ui): SettingsWindow, VaultFolderPicker, HotkeyRecorder, Fir
 - Create: `apps/macos/App/GotItApp.swift`
 - Create: `apps/macos/App/AppDelegate.swift`
 
-- [ ] **Step 20.1: `AppConfig.swift`**
+- [x] **Step 20.1: `AppConfig.swift`**
 
 ```swift
 import Foundation
@@ -3168,7 +3168,7 @@ public struct AppConfig: Sendable {
 
 Add the corresponding `Info.plist` keys (`GotItBackendURL`, `GotItHealthProbeTimeoutMs`) per sub-spec §6.
 
-- [ ] **Step 20.2: `AppDependencies.swift` — single call site for `make…Live(…)`**
+- [x] **Step 20.2: `AppDependencies.swift` — single call site for `make…Live(…)`**
 
 ```swift
 import Foundation
@@ -3214,7 +3214,7 @@ public final class AppDependencies: ObservableObject {
 }
 ```
 
-- [ ] **Step 20.3: `GotItApp.swift` and `AppDelegate.swift`**
+- [x] **Step 20.3: `GotItApp.swift` and `AppDelegate.swift`**
 
 ```swift
 // GotItApp.swift
@@ -3285,7 +3285,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 ```
 
-- [ ] **Step 20.4: Build the app**
+- [x] **Step 20.4: Build the app**
 
 ```bash
 xcodebuild build -scheme GotIt -destination "platform=macOS" -quiet
@@ -3293,7 +3293,7 @@ xcodebuild build -scheme GotIt -destination "platform=macOS" -quiet
 
 Expect: `** BUILD SUCCEEDED **`. Run from Xcode (`Cmd+R`); status bar item appears; `Cmd+Shift+Space` toggles the panel.
 
-- [ ] **Step 20.5: Commit**
+- [x] **Step 20.5: Commit**
 
 ```bash
 git commit -am "feat(macos): app target — AppConfig, DI root, AppDelegate, status item, hotkey, screenshot watcher"

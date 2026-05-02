@@ -11,6 +11,9 @@ public struct PanelHostingView: View {
                 switch event {
                 case .toast(let text): ToastView(text).padding()
                 case .savedTo(let url): ToastView("Saved to \(url.lastPathComponent)") {
+                    let encoded = url.path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? url.path
+                    if let obsidianURL = URL(string: "obsidian://open?path=\(encoded)"),
+                       NSWorkspace.shared.open(obsidianURL) { return }
                     NSWorkspace.shared.activateFileViewerSelecting([url])
                 }.padding()
                 case .reconnectRequired:
@@ -28,7 +31,11 @@ public struct PanelHostingView: View {
                 case .permissionRequired(.vaultFolder):
                     PermissionPrompt(title: "Choose your captures folder",
                         message: "GotIt! saves Markdown files into a folder you pick.",
-                        cta: "Choose…") { /* wired by app */ }.padding()
+                        cta: "Choose…") {
+                        if let url = VaultFolderPicker.choose() {
+                            panel.didChooseVaultFolder(url)
+                        }
+                    }.padding()
                 case .offlineChanged: EmptyView()
                 case .error(let s): ToastView("Error: \(s)").padding()
                 }

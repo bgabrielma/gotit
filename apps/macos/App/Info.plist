@@ -22,6 +22,14 @@
 	<true/>
 	<key>NSDesktopFolderUsageDescription</key>
 	<string>GotIt! reads screenshots you save with Cmd+Shift+3/4/5 so it can route them into the panel.</string>
+	<key>GotItBackendURL</key>
+	<string>http://localhost:3000</string>
+	<key>GotItHealthProbeTimeoutMs</key>
+	<integer>1500</integer>
+	<key>GotItAutoDetectScreenshots</key>
+	<true/>
+	<key>GotItScreenshotGraceSeconds</key>
+	<integer>3</integer>
 	<key>NSScreenCaptureUsageDescription</key>
 	<string>GotIt! re-captures your active display when you click "Look again" so the model can see what you're working on.</string>
 </dict>

@@ -11,6 +11,9 @@
 		5EE205DA0356583DDBEE91F5 /* GotItApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113D9CF27592270BF1C3B140 /* GotItApp.swift */; };
 		61528CDBE867018BF046BB38 /* GotItInfra in Frameworks */ = {isa = PBXBuildFile; productRef = E862D95E82BD0E23685E1A7A /* GotItInfra */; };
 		99143AA9150D8DC3C4FCAED6 /* GotItUI in Frameworks */ = {isa = PBXBuildFile; productRef = F65781CA376CB5E032553357 /* GotItUI */; };
+		C651B60A43A93FD21DE401C6 /* AppDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D1B196909CAEEB4AF8587E1 /* AppDependencies.swift */; };
+		E9C68E4C5BC9C6797919747C /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD10A084222B2367F4EA3B0 /* AppConfig.swift */; };
+		F4B3AFC30AED3DD71A717A86 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17ECF55837A7677EED4B383 /* AppDelegate.swift */; };
 		FD025632F6162E6AC9ABFEE3 /* GotItModels in Frameworks */ = {isa = PBXBuildFile; productRef = 951FE6575D9C3EFFA69FD236 /* GotItModels */; };
 /* End PBXBuildFile section */
 
@@ -27,10 +30,13 @@
 /* Begin PBXFileReference section */
 		113D9CF27592270BF1C3B140 /* GotItApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GotItApp.swift; sourceTree = "<group>"; };
 		2616AF7E98129558CC418BC6 /* GotItUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GotItUITests.swift; sourceTree = "<group>"; };
+		2D1B196909CAEEB4AF8587E1 /* AppDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDependencies.swift; sourceTree = "<group>"; };
+		2DD10A084222B2367F4EA3B0 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		9220700086C168EFFAC8904A /* GotIt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GotIt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF7B299E1AAF6B2B5FDC6F9E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		B78A0D0206D3DC3EA3341933 /* GotItUI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = GotItUI; path = Packages/GotItUI; sourceTree = SOURCE_ROOT; };
 		C324E6DB9AAF730E69A21552 /* GotItInfra */ = {isa = PBXFileReference; lastKnownFileType = folder; name = GotItInfra; path = Packages/GotItInfra; sourceTree = SOURCE_ROOT; };
+		D17ECF55837A7677EED4B383 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D5445696E6D40BBA4CBB4D03 /* GotItUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GotItUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5F774C1A13E4D1717562DC0 /* GotItModels */ = {isa = PBXFileReference; lastKnownFileType = folder; name = GotItModels; path = Packages/GotItModels; sourceTree = SOURCE_ROOT; };
 		E88A79C78E71CDA175EAB520 /* GotIt.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GotIt.entitlements; sourceTree = "<group>"; };
@@ -73,6 +79,9 @@
 		A0A4F1824362ABAE875E6CEE /* App */ = {
 			isa = PBXGroup;
 			children = (
+				2DD10A084222B2367F4EA3B0 /* AppConfig.swift */,
+				D17ECF55837A7677EED4B383 /* AppDelegate.swift */,
+				2D1B196909CAEEB4AF8587E1 /* AppDependencies.swift */,
 				E88A79C78E71CDA175EAB520 /* GotIt.entitlements */,
 				113D9CF27592270BF1C3B140 /* GotItApp.swift */,
 				AF7B299E1AAF6B2B5FDC6F9E /* Info.plist */,
@@ -197,6 +206,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E9C68E4C5BC9C6797919747C /* AppConfig.swift in Sources */,
+				F4B3AFC30AED3DD71A717A86 /* AppDelegate.swift in Sources */,
+				C651B60A43A93FD21DE401C6 /* AppDependencies.swift in Sources */,
 				5EE205DA0356583DDBEE91F5 /* GotItApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

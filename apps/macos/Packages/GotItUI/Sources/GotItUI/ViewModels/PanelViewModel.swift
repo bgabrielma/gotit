@@ -37,6 +37,7 @@ public final class PanelViewModel: ObservableObject {
     }
 
     public func sendCapture(image: Data, source: CaptureSourceWire) async {
+        await monitor.recheck()
         if await monitor.isOnline == false { events.append(.offlineChanged(false)); return }
         do {
             let r: CaptureResponse = try await api.send(.capture(image: image, source: source))
@@ -45,8 +46,15 @@ public final class PanelViewModel: ObservableObject {
         catch { events.append(.error(String(describing: error))) }
     }
 
+    public func didChooseVaultFolder(_ url: URL) {
+        try? bookmark.save(folder: url)
+    }
+
     public func save(instruction: String?) async {
         isWorking = true; defer { isWorking = false }
+
+        await monitor.recheck()
+        if await monitor.isOnline == false { events.append(.offlineChanged(false)); return }
 
         guard let resolved = bookmark.tryResolve() else {
             events.append(.permissionRequired(.vaultFolder)); return

@@ -27,6 +27,10 @@ targets:
         LSUIElement: true
         NSScreenCaptureUsageDescription: "GotIt! re-captures your active display when you click \"Look again\" so the model can see what you're working on."
         NSDesktopFolderUsageDescription: "GotIt! reads screenshots you save with Cmd+Shift+3/4/5 so it can route them into the panel."
+        GotItBackendURL: "http://localhost:3000"
+        GotItHealthProbeTimeoutMs: 1500
+        GotItAutoDetectScreenshots: true
+        GotItScreenshotGraceSeconds: 3
         CFBundleIdentifier: dev.gotit.GotIt
         CFBundleName: GotIt
         CFBundleVersion: "1"
