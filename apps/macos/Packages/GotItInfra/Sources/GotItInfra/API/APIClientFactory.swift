@@ -10,3 +10,14 @@ public enum APIClientFactory {
 
     // makeLive is added in Task 5 once URLSessionAPIClient exists.
 }
+
+public extension APIClientFactory {
+    static func makeLive(
+        baseURL: URL,
+        session: URLSession = .shared,
+        keychain: KeychainStore,
+        installID: String
+    ) -> APIClient {
+        URLSessionAPIClient(baseURL: baseURL, session: session, keychain: keychain, installID: installID)
+    }
+}

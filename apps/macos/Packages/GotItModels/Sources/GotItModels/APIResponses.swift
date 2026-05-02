@@ -3,6 +3,7 @@ import Foundation
 public struct DeviceRegistrationResponse: Codable, Equatable, Sendable {
     public let deviceID: String
     public let token: String
+    public init(deviceID: String, token: String) { self.deviceID = deviceID; self.token = token }
     enum CodingKeys: String, CodingKey { case deviceID = "device_id", token }
 }
 
@@ -45,4 +46,5 @@ public struct CreateSessionResponse: Codable, Equatable, Sendable {
 public struct HealthResponse: Codable, Equatable, Sendable {
     public let ok: Bool
     public let version: String
+    public init(ok: Bool, version: String) { self.ok = ok; self.version = version }
 }
