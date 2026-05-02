@@ -1135,7 +1135,7 @@ git commit -m "feat(infra): APIClient protocol, Endpoint enum, NullAPIClient"
 
 The live client uses an injected `URLProtocol` stack so unit tests run without sockets. `URLProtocol` subclassing is the standard test seam for `URLSession` and is allowed even though we don't use mocking frameworks — it is the dependency-injection seam Apple itself documents.
 
-- [ ] **Step 5.1: Failing 401 re-pair test**
+- [x] **Step 5.1: Failing 401 re-pair test**
 
 `APIClient401Tests.swift`:
 
@@ -1200,7 +1200,7 @@ import GotItModels
 
 Run tests. Expect: FAIL (live factory and `URLSessionAPIClient` don't exist yet).
 
-- [ ] **Step 5.2: Implement `URLSessionAPIClient.swift`**
+- [x] **Step 5.2: Implement `URLSessionAPIClient.swift`**
 
 ```swift
 import Foundation
@@ -1334,7 +1334,7 @@ internal actor URLSessionAPIClient: APIClient {
 
 Note the `KeychainStore` protocol surface used here (`read() async throws -> String?`, `write(_:)`, `delete()`) — it is defined in Task 8. To keep this task building, add a temporary `protocol KeychainStore { func read() async throws -> String? ; func write(_ token: String) async throws ; func delete() async throws }` placeholder in `Keychain/KeychainStore.swift`. Task 8 expands it.
 
-- [ ] **Step 5.3: Add `makeLive` to `APIClientFactory`**
+- [x] **Step 5.3: Add `makeLive` to `APIClientFactory`**
 
 ```swift
 public extension APIClientFactory {
@@ -1349,7 +1349,7 @@ public extension APIClientFactory {
 }
 ```
 
-- [ ] **Step 5.4: Add `APIClientRetryTests.swift`**
+- [x] **Step 5.4: Add `APIClientRetryTests.swift`**
 
 ```swift
 @Suite struct APIClientRetryTests {
@@ -1387,13 +1387,13 @@ public extension APIClientFactory {
 
 The retry budget here is small — exhausted retries surface as `.transport` (which the UI maps to "offline") rather than `.offline`; `OfflineMonitor` is the source of the offline banner state.
 
-- [ ] **Step 5.5: Run tests, expect PASS**
+- [x] **Step 5.5: Run tests, expect PASS**
 
 ```bash
 swift test --package-path apps/macos/Packages/GotItInfra
 ```
 
-- [ ] **Step 5.6: Commit**
+- [x] **Step 5.6: Commit**
 
 ```bash
 git add apps/macos/Packages/GotItInfra
@@ -2227,7 +2227,7 @@ git commit -m "feat(infra): HotkeyRegistrar wrapping KeyboardShortcuts + scripte
 - Create: `Logging/Logger.swift`
 - Test: `Tests/GotItInfraTests/DeviceCapabilitiesTests.swift`
 
-- [ ] **Step 13.1: Failing test**
+- [x] **Step 13.1: Failing test**
 
 ```swift
 @Suite struct DeviceCapabilitiesTests {
@@ -2248,7 +2248,7 @@ git commit -m "feat(infra): HotkeyRegistrar wrapping KeyboardShortcuts + scripte
 }
 ```
 
-- [ ] **Step 13.2: Implement**
+- [x] **Step 13.2: Implement**
 
 ```swift
 import Foundation
@@ -2309,7 +2309,7 @@ public struct LiveCapabilityProbe: CapabilityProbe {
 }
 ```
 
-- [ ] **Step 13.3: `Logger.swift`**
+- [x] **Step 13.3: `Logger.swift`**
 
 ```swift
 import Foundation
@@ -2323,7 +2323,7 @@ public enum Log {
 }
 ```
 
-- [ ] **Step 13.4: Run all infra tests, commit**
+- [x] **Step 13.4: Run all infra tests, commit**
 
 ```bash
 swift test --package-path apps/macos/Packages/GotItInfra
