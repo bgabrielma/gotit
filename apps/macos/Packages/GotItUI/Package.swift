@@ -13,6 +13,6 @@ let package = Package(
     ],
     targets: [
         .target(name: "GotItUI", dependencies: ["GotItModels", "GotItInfra"]),
-        .testTarget(name: "GotItUITests", dependencies: ["GotItUI"]),
+        .testTarget(name: "GotItUITests", dependencies: ["GotItUI", "GotItModels", "GotItInfra"]),
     ]
 )

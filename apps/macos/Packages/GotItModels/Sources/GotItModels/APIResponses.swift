@@ -19,6 +19,7 @@ public struct CaptureResponse: Codable, Equatable, Sendable {
 public struct ChatResponse: Codable, Equatable, Sendable {
     public let messageID: String
     public let assistantMessage: AssistantPayload
+    public init(messageID: String, assistantMessage: AssistantPayload) { self.messageID = messageID; self.assistantMessage = assistantMessage }
     enum CodingKeys: String, CodingKey { case messageID = "message_id", assistantMessage = "assistant_message" }
 }
 
