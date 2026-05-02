@@ -3519,7 +3519,7 @@ git commit -am "test(macos): XCUITest smoke for hotkey + panel + text round-trip
 
 **Files:** none new. This task confirms the sprint contract from sub-spec §12 + parent §16.1.
 
-- [ ] **Step 25.1: TS side**
+- [x] **Step 25.1: TS side**
 
 ```bash
 pnpm typecheck && pnpm lint && pnpm test && pnpm purity-check
@@ -3527,7 +3527,7 @@ pnpm typecheck && pnpm lint && pnpm test && pnpm purity-check
 
 Expect: all green.
 
-- [ ] **Step 25.2: macOS side**
+- [x] **Step 25.2: macOS side**
 
 ```bash
 pnpm test:macos
@@ -3535,11 +3535,11 @@ pnpm test:macos
 
 Expect: all SPM tests pass; XCUITest smoke skipped (no `GOTIT_BACKEND_LIVE=1`) or passes if the developer is running the backend.
 
-- [ ] **Step 25.3: Module boundary check**
+- [x] **Step 25.3: Module boundary check**
 
 In Xcode, attempt to add `import URLSessionAPIClient` (the concrete) inside `GotItUI` — must fail to compile (it's `internal` to `GotItInfra`). Same for `SecKeychainStore`, `FileManagerMarkdownWriter`, `MetadataQueryScreenshotWatcher`. Document the attempt in the commit message.
 
-- [ ] **Step 25.4: Spec terminology lint**
+- [x] **Step 25.4: Spec terminology lint**
 
 Confirm names match sub-spec §14:
 
@@ -3549,7 +3549,7 @@ rg -n 'VaultWriter|ObsidianWriter' apps/macos
 
 Expect: zero hits in `apps/macos`. The wrapper is `MarkdownFileWriter`. Backend keeps its `obsidian-writer.ts` file only if Task 1.8 didn't prune it; Phase 1a does not export "Obsidian Vault" wording from the client surface.
 
-- [ ] **Step 25.5: No hardcoded URLs/paths in source**
+- [x] **Step 25.5: No hardcoded URLs/paths in source**
 
 ```bash
 rg -n 'http://localhost' apps/macos/Sources apps/macos/Packages 2>/dev/null
