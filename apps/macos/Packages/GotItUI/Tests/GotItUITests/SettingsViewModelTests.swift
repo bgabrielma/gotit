@@ -23,8 +23,3 @@ import GotItInfra
     }
 }
 
-private func makeTempDir() throws -> URL {
-    let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-    try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-    return url
-}

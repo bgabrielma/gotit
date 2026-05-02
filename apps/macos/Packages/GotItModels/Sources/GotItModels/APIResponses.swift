@@ -11,6 +11,9 @@ public struct CaptureResponse: Codable, Equatable, Sendable {
     public let messageID: String
     public let analysis: AnalysisResult
     public let assistantMessage: AssistantPayload
+    public init(messageID: String, analysis: AnalysisResult, assistantMessage: AssistantPayload) {
+        self.messageID = messageID; self.analysis = analysis; self.assistantMessage = assistantMessage
+    }
     enum CodingKeys: String, CodingKey {
         case messageID = "message_id", analysis, assistantMessage = "assistant_message"
     }
@@ -27,6 +30,9 @@ public struct SaveDraftResponse: Codable, Equatable, Sendable {
     public let vaultRelativePath: String
     public let markdown: String
     public let saveRecordID: String
+    public init(vaultRelativePath: String, markdown: String, saveRecordID: String) {
+        self.vaultRelativePath = vaultRelativePath; self.markdown = markdown; self.saveRecordID = saveRecordID
+    }
     enum CodingKeys: String, CodingKey {
         case vaultRelativePath = "vault_relative_path", markdown, saveRecordID = "save_record_id"
     }
