@@ -2340,7 +2340,7 @@ git commit -am "feat(infra): DeviceCapabilities + Logger"
 - Create: `Sources/GotItUI/ViewModels/ChatViewModel.swift`
 - Test: `Tests/GotItUITests/ChatViewModelTests.swift`
 
-- [ ] **Step 14.1: Failing test**
+- [x] **Step 14.1: Failing test**
 
 ```swift
 import Testing
@@ -2376,7 +2376,7 @@ import GotItInfra
 }
 ```
 
-- [ ] **Step 14.2: Implement events + view model**
+- [x] **Step 14.2: Implement events + view model**
 
 ```swift
 import Foundation
@@ -2448,7 +2448,7 @@ public final class ChatViewModel: ObservableObject {
 }
 ```
 
-- [ ] **Step 14.3: Run, PASS, commit**
+- [x] **Step 14.3: Run, PASS, commit**
 
 ```bash
 swift test --package-path apps/macos/Packages/GotItUI
@@ -2633,7 +2633,7 @@ git commit -am "feat(ui): PanelViewModel — lookAgain, save, offline coordinati
 - Create: `ViewModels/SettingsViewModel.swift`
 - Test: `Tests/GotItUITests/SettingsViewModelTests.swift`
 
-- [ ] **Step 16.1: Failing test**
+- [x] **Step 16.1: Failing test**
 
 ```swift
 @Suite struct SettingsViewModelTests {
@@ -2657,7 +2657,7 @@ git commit -am "feat(ui): PanelViewModel — lookAgain, save, offline coordinati
 }
 ```
 
-- [ ] **Step 16.2: Implement**
+- [x] **Step 16.2: Implement**
 
 ```swift
 import Foundation
@@ -2696,7 +2696,7 @@ public final class SettingsViewModel: ObservableObject {
 }
 ```
 
-- [ ] **Step 16.3: Commit**
+- [x] **Step 16.3: Commit**
 
 ```bash
 git commit -am "feat(ui): SettingsViewModel"
