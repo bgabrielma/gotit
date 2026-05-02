@@ -3365,15 +3365,15 @@ git commit -am "chore: add pnpm test:macos and gate it in pre-push when apps/mac
 - Modify: `Sources/GotItUI/Chat/InputBar.swift`
 - (no new tests — covered by manual smoke #3, #4, #5)
 
-- [ ] **Step 22.1: Drag-drop**
+- [x] **Step 22.1: Drag-drop**
 
 Wrap `ChatView`'s root `VStack` in `.onDrop(of: [.image, .png, .jpeg, .heic, .gif, .webp], isTargeted: nil) { providers in … }`. Inside the closure, ask each provider for `Data` of the matching UTI and call `panel.sendCapture(image:, source: .invoke)`.
 
-- [ ] **Step 22.2: Paste**
+- [x] **Step 22.2: Paste**
 
 Add `.onCommand(#selector(NSStandardKeyBindingResponding.paste(_:)))` (or a SwiftUI `keyboardShortcut("v", modifiers: .command)` action on a hidden button) that reads `NSPasteboard.general` for image data. If data exists, call `sendCapture(image:source:.invoke)`.
 
-- [ ] **Step 22.3: 📎 attach**
+- [x] **Step 22.3: 📎 attach**
 
 Wire `onAttach` in `ChatView` to:
 
@@ -3386,7 +3386,7 @@ if panel.runModal() == .OK, let url = panel.url, let data = try? Data(contentsOf
 }
 ```
 
-- [ ] **Step 22.4: Build + commit**
+- [x] **Step 22.4: Build + commit**
 
 ```bash
 xcodebuild build -scheme GotIt -destination "platform=macOS" -quiet
