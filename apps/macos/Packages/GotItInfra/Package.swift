@@ -17,6 +17,9 @@ let package = Package(
             dependencies: [
                 "GotItModels",
                 .product(name: "KeyboardShortcuts", package: "KeyboardShortcuts"),
+            ],
+            linkerSettings: [
+                .linkedFramework("ScreenCaptureKit"),
             ]
         ),
         .testTarget(
