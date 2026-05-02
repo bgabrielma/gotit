@@ -3403,7 +3403,7 @@ git commit -am "feat(ui): drag-drop, ⌘V paste, and paperclip image attach path
 
 The watcher emits a `ScreenshotEvent`. The view model schedules an auto-send after `GotItScreenshotGraceSeconds` (default 3); the toast shows a Cancel that flips a `pending` flag and the auto-send checks it.
 
-- [ ] **Step 23.1: Failing test**
+- [x] **Step 23.1: Failing test**
 
 ```swift
 @Test func screenshotEventTriggersGraceWindowThenSends() async throws {
@@ -3431,7 +3431,7 @@ The watcher emits a `ScreenshotEvent`. The view model schedules an auto-send aft
 }
 ```
 
-- [ ] **Step 23.2: Implement**
+- [x] **Step 23.2: Implement**
 
 ```swift
 extension PanelViewModel {
@@ -3453,7 +3453,7 @@ extension PanelViewModel {
 
 Add `@Published private var pendingScreenshot: URL?` to the class.
 
-- [ ] **Step 23.3: Wire into `AppDelegate.consumeScreenshots`**
+- [x] **Step 23.3: Wire into `AppDelegate.consumeScreenshots`**
 
 ```swift
 for await event in deps.watcher.events() {
@@ -3461,7 +3461,7 @@ for await event in deps.watcher.events() {
 }
 ```
 
-- [ ] **Step 23.4: Run, PASS, commit**
+- [x] **Step 23.4: Run, PASS, commit**
 
 ```bash
 swift test --package-path apps/macos/Packages/GotItUI

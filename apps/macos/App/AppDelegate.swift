@@ -87,12 +87,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func consumeScreenshots() async {
         for await event in await deps.watcher.events() {
-            do {
-                let data = try Data(contentsOf: event.fileURL)
-                await deps.panel.sendCapture(image: data, source: .screenshot)
-            } catch {
-                Log.capture.error("screenshot read failed: \(String(describing: error))")
-            }
+            await deps.panel.handleScreenshot(at: event.fileURL,
+                                              graceSeconds: Double(deps.config.screenshotGraceSeconds))
         }
     }
 }

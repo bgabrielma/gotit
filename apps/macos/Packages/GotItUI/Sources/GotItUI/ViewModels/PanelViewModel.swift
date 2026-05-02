@@ -13,6 +13,7 @@ public final class PanelViewModel: ObservableObject {
     private let writer: MarkdownFileWriter
     private let bookmark: SecureBookmarkStore
     private let monitor: OfflineMonitor
+    @Published private var pendingScreenshot: URL?
 
     public init(api: APIClient,
                 capture: ScreenCaptureService,
@@ -45,6 +46,20 @@ public final class PanelViewModel: ObservableObject {
         } catch APIError.unauthorized { events.append(.reconnectRequired) }
         catch { events.append(.error(String(describing: error))) }
     }
+
+    public func handleScreenshot(at url: URL, graceSeconds: Double) async {
+        events.append(.toast("Screenshot captured — sending to GotIt!"))
+        pendingScreenshot = url
+        if graceSeconds > 0 {
+            try? await Task.sleep(nanoseconds: UInt64(graceSeconds * 1_000_000_000))
+        }
+        guard pendingScreenshot == url else { return }
+        pendingScreenshot = nil
+        guard let data = try? Data(contentsOf: url) else { return }
+        await sendCapture(image: data, source: .screenshot)
+    }
+
+    public func cancelPendingScreenshot() async { pendingScreenshot = nil }
 
     public func didChooseVaultFolder(_ url: URL) {
         try? bookmark.save(folder: url)
