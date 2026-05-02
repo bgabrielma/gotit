@@ -67,5 +67,6 @@ targets:
         DEVELOPMENT_TEAM: ""
         CODE_SIGN_IDENTITY: "-"
         TEST_TARGET_NAME: GotIt
+        GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: GotIt

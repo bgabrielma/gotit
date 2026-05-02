@@ -3308,7 +3308,7 @@ git commit -am "feat(macos): app target — AppConfig, DI root, AppDelegate, sta
 - Modify: root `package.json`
 - Modify: `.husky/pre-push`
 
-- [ ] **Step 21.1: Add the script**
+- [x] **Step 21.1: Add the script**
 
 In root `package.json`:
 
@@ -3322,7 +3322,7 @@ In root `package.json`:
 
 If the project is project-only (no workspace), use `-project apps/macos/GotIt.xcodeproj` instead.
 
-- [ ] **Step 21.2: Update `.husky/pre-push`**
+- [x] **Step 21.2: Update `.husky/pre-push`**
 
 ```bash
 #!/usr/bin/env sh
@@ -3341,7 +3341,7 @@ if git diff --name-only @{push}...HEAD 2>/dev/null | grep -q '^apps/macos/'; the
 fi
 ```
 
-- [ ] **Step 21.3: Verify**
+- [x] **Step 21.3: Verify**
 
 ```bash
 pnpm test:macos
@@ -3349,7 +3349,7 @@ pnpm test:macos
 
 Expect: all `GotItModels`, `GotItInfra`, `GotItUI`, and `GotItUITests` targets run via `xcodebuild`. PASS.
 
-- [ ] **Step 21.4: Commit**
+- [x] **Step 21.4: Commit**
 
 ```bash
 git commit -am "chore: add pnpm test:macos and gate it in pre-push when apps/macos changes"

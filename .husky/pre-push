@@ -1,1 +1,14 @@
-pnpm typecheck && pnpm lint && pnpm test && pnpm purity-check
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+set -e
+
+pnpm typecheck
+pnpm lint
+pnpm test
+pnpm purity-check
+
+# Only run macOS tests when apps/macos changed since the upstream branch.
+if git diff --name-only @{push}...HEAD 2>/dev/null | grep -q '^apps/macos/'; then
+  pnpm test:macos
+fi
