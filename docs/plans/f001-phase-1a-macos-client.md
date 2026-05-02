@@ -3478,7 +3478,7 @@ git commit -am "feat(ui): screenshot grace toast with 3s cancel window"
 
 This is one happy-path UI test. It runs against a real backend (`localhost:3000`) prepared by the developer; in CI it is skipped.
 
-- [ ] **Step 24.1: Skeleton**
+- [x] **Step 24.1: Skeleton**
 
 ```swift
 import XCTest
@@ -3507,7 +3507,7 @@ final class PanelSmokeTests: XCTestCase {
 
 If hotkey synthesis is required and reliable on the developer's machine, swap the menu-bar click for `XCUIRemote.shared.press(.someKey)` or skip entirely — manual smoke #2 covers the hotkey flow.
 
-- [ ] **Step 24.2: Commit**
+- [x] **Step 24.2: Commit**
 
 ```bash
 git commit -am "test(macos): XCUITest smoke for hotkey + panel + text round-trip"
