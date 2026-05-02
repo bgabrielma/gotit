@@ -2717,7 +2717,7 @@ git commit -am "feat(ui): SettingsViewModel"
 
 These are pure SwiftUI views. No tests beyond view-model tests above; manual smoke covers visuals. Per spec §11.2 view-model coverage suffices for Phase 1a; snapshot/`ViewInspector` tests are an optional extension if time permits — **not required** for the sprint contract gate.
 
-- [ ] **Step 17.1: `MessageRow.swift`**
+- [x] **Step 17.1: `MessageRow.swift`**
 
 ```swift
 import SwiftUI
@@ -2748,7 +2748,7 @@ public struct MessageRow: View {
 }
 ```
 
-- [ ] **Step 17.2: `InputBar.swift`** (text field + 📎 + Look again + Save + Reset, mic/listen hidden per spec §6.2)
+- [x] **Step 17.2: `InputBar.swift`** (text field + 📎 + Look again + Save + Reset, mic/listen hidden per spec §6.2)
 
 ```swift
 import SwiftUI
@@ -2785,7 +2785,7 @@ public struct InputBar: View {
 }
 ```
 
-- [ ] **Step 17.3: `OfflineBanner.swift`**
+- [x] **Step 17.3: `OfflineBanner.swift`**
 
 ```swift
 import SwiftUI
@@ -2804,7 +2804,7 @@ public struct OfflineBanner: View {
 }
 ```
 
-- [ ] **Step 17.4: `ToastView.swift` and `PermissionPrompt.swift`**
+- [x] **Step 17.4: `ToastView.swift` and `PermissionPrompt.swift`**
 
 ```swift
 import SwiftUI
@@ -2844,7 +2844,7 @@ public struct PermissionPrompt: View {
 }
 ```
 
-- [ ] **Step 17.5: `ChatView.swift`**
+- [x] **Step 17.5: `ChatView.swift`**
 
 ```swift
 import SwiftUI
@@ -2888,7 +2888,7 @@ public struct ChatView: View {
 }
 ```
 
-- [ ] **Step 17.6: Build the package**
+- [x] **Step 17.6: Build the package**
 
 ```bash
 swift build --package-path apps/macos/Packages/GotItUI
@@ -2909,7 +2909,7 @@ git commit -am "feat(ui): SwiftUI ChatView, MessageRow, InputBar, OfflineBanner,
 - Create: `Sources/GotItUI/Panel/FloatingPanel.swift`
 - Create: `Sources/GotItUI/Panel/PanelHostingView.swift`
 
-- [ ] **Step 18.1: `FloatingPanel.swift`**
+- [x] **Step 18.1: `FloatingPanel.swift`**
 
 ```swift
 import AppKit
@@ -2954,7 +2954,7 @@ public final class FloatingPanel: NSPanel {
 }
 ```
 
-- [ ] **Step 18.2: `PanelHostingView.swift`** is just a thin SwiftUI shell around `ChatView` plus a permission/onboarding overlay swap. Skipped here — it wraps `ChatView(panel:)` and adds a `ZStack` with current event mapped to `ToastView` / `PermissionPrompt`.
+- [x] **Step 18.2: `PanelHostingView.swift`** is just a thin SwiftUI shell around `ChatView` plus a permission/onboarding overlay swap. Skipped here — it wraps `ChatView(panel:)` and adds a `ZStack` with current event mapped to `ToastView` / `PermissionPrompt`.
 
 ```swift
 import SwiftUI
@@ -2996,7 +2996,7 @@ public struct PanelHostingView: View {
 }
 ```
 
-- [ ] **Step 18.3: Commit**
+- [x] **Step 18.3: Commit**
 
 ```bash
 git commit -am "feat(ui): FloatingPanel (NSPanel) + PanelHostingView"
@@ -3013,7 +3013,7 @@ git commit -am "feat(ui): FloatingPanel (NSPanel) + PanelHostingView"
 - Create: `Sources/GotItUI/Settings/HotkeyRecorder.swift`
 - Create: `Sources/GotItUI/Onboarding/FirstRunBackendStep.swift`
 
-- [ ] **Step 19.1: `VaultFolderPicker.swift`** — wraps `NSOpenPanel`
+- [x] **Step 19.1: `VaultFolderPicker.swift`** — wraps `NSOpenPanel`
 
 ```swift
 import AppKit
@@ -3032,7 +3032,7 @@ public enum VaultFolderPicker {
 }
 ```
 
-- [ ] **Step 19.2: `HotkeyRecorder.swift`**
+- [x] **Step 19.2: `HotkeyRecorder.swift`**
 
 ```swift
 import SwiftUI
@@ -3050,7 +3050,7 @@ public struct HotkeyRecorderView: View {
 }
 ```
 
-- [ ] **Step 19.3: `SettingsWindow.swift`**
+- [x] **Step 19.3: `SettingsWindow.swift`**
 
 ```swift
 import SwiftUI
@@ -3086,7 +3086,7 @@ public struct SettingsView: View {
 }
 ```
 
-- [ ] **Step 19.4: `FirstRunBackendStep.swift`**
+- [x] **Step 19.4: `FirstRunBackendStep.swift`**
 
 ```swift
 import SwiftUI
@@ -3117,7 +3117,7 @@ public struct FirstRunBackendStep: View {
 }
 ```
 
-- [ ] **Step 19.5: Build + commit**
+- [x] **Step 19.5: Build + commit**
 
 ```bash
 swift build --package-path apps/macos/Packages/GotItUI
