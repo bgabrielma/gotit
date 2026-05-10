@@ -16,6 +16,11 @@ internal actor URLSessionAPIClient: APIClient {
         self.installID = installID
     }
 
+    /** Constructs the URL for a stored image served by the backend. */
+    nonisolated func imageURL(for imageRef: String) -> URL {
+        baseURL.appendingPathComponent("images/\(imageRef)")
+    }
+
     nonisolated func send<R: Decodable & Sendable>(_ endpoint: Endpoint) async throws -> R {
         try await sendOnce(endpoint, allowRepair: true)
     }

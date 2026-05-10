@@ -6,6 +6,7 @@ import GotItUI
 public final class AppDependencies: ObservableObject {
     public let config: AppConfig
     public let api: APIClient
+    public let keychain: KeychainStore
     public let monitor: OfflineMonitor
     public let capture: ScreenCaptureService
     public let writer: MarkdownFileWriter
@@ -17,9 +18,13 @@ public final class AppDependencies: ObservableObject {
     public let settings: SettingsViewModel
     public let panel: PanelViewModel
 
+    /** The backend base URL, used to construct image request URLs. */
+    public var imageBaseURL: URL { config.backendURL }
+
     public init(config: AppConfig) {
         self.config = config
         let keychain = KeychainStoreFactory.makeLive(service: config.keychainService, account: config.keychainAccount)
+        self.keychain = keychain
         let bookmark = SecureBookmarkStoreFactory.makeLive()
         self.bookmark = bookmark
         self.api = APIClientFactory.makeLive(baseURL: config.backendURL, keychain: keychain, installID: config.installID)

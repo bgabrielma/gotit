@@ -217,7 +217,7 @@ cd packages/api && pnpm typecheck && pnpm lint
 
 Expected: zero errors.
 
-- [ ] **Step 2.6: Commit**
+- [x] **Step 2.6: Commit**
 
 ```bash
 git add packages/api/src/routes/images.ts \
@@ -235,7 +235,7 @@ git commit -m "feat(api): add GET /images/:imageRef route with path traversal gu
 - Modify: `apps/macos/Packages/GotItInfra/Sources/GotItInfra/API/URLSessionAPIClient.swift`
 - Modify: `apps/macos/App/AppDependencies.swift`
 
-- [ ] **Step 3.1: Add `imageURL(for:)` to `URLSessionAPIClient`**
+- [x] **Step 3.1: Add `imageURL(for:)` to `URLSessionAPIClient`**
 
 In `apps/macos/Packages/GotItInfra/Sources/GotItInfra/API/URLSessionAPIClient.swift`, add the following method after the `init`:
 
@@ -272,7 +272,7 @@ internal actor URLSessionAPIClient: APIClient {
     // ... rest of file unchanged
 ```
 
-- [ ] **Step 3.2: Store `keychain` in `AppDependencies`**
+- [x] **Step 3.2: Store `keychain` in `AppDependencies`**
 
 In `apps/macos/App/AppDependencies.swift`, add `keychain` as a public stored property and expose `imageBaseURL`:
 
@@ -329,7 +329,7 @@ public final class AppDependencies: ObservableObject {
 }
 ```
 
-- [ ] **Step 3.3: Build to verify no compile errors**
+- [x] **Step 3.3: Build to verify no compile errors**
 
 ```bash
 cd apps/macos && xcodebuild -scheme GotIt -configuration Debug build -quiet 2>&1 | tail -20
