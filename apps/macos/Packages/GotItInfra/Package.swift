@@ -9,7 +9,7 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../GotItModels"),
-        .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.2.0"),
+        .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", .upToNextMinor(from: "1.15.0")),
     ],
     targets: [
         .target(
