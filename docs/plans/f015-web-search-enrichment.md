@@ -47,7 +47,7 @@
 - Modify: `packages/api/src/__tests__/unit/config.test.ts`
 - Modify: `.env.template`
 
-- [ ] **Step 1.1: Write failing test for new config field**
+- [x] **Step 1.1: Write failing test for new config field**
 
 In `packages/api/src/__tests__/unit/config.test.ts`, add a test:
 
@@ -70,12 +70,12 @@ it('parses custom GOTIT_SEARXNG_URL', () => {
 })
 ```
 
-- [ ] **Step 1.2: Run test, expect failure**
+- [x] **Step 1.2: Run test, expect failure**
 
 Run: `cd packages/api && pnpm test src/__tests__/unit/config.test.ts`
 Expected: FAIL — `searxngUrl` does not exist on type `Config`
 
-- [ ] **Step 1.3: Add GOTIT_SEARXNG_URL to ConfigSchema and Config type**
+- [x] **Step 1.3: Add GOTIT_SEARXNG_URL to ConfigSchema and Config type**
 
 In `packages/api/src/config.ts`:
 
@@ -97,12 +97,12 @@ Add to `loadConfig` return:
 searxngUrl: parsed.GOTIT_SEARXNG_URL,
 ```
 
-- [ ] **Step 1.4: Run test, expect pass**
+- [x] **Step 1.4: Run test, expect pass**
 
 Run: `cd packages/api && pnpm test src/__tests__/unit/config.test.ts`
 Expected: PASS
 
-- [ ] **Step 1.5: Add GOTIT_SEARXNG_URL to .env.template**
+- [x] **Step 1.5: Add GOTIT_SEARXNG_URL to .env.template**
 
 Append after the `GOTIT_VAULT_PATH` line block in `.env.template`:
 

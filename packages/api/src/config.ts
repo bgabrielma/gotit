@@ -16,6 +16,7 @@ const ConfigSchema = z
     GOTIT_DATABASE_URL: z.string().url().default(DEFAULT_DATABASE_URL),
     GOTIT_DATA_DIR: z.string().default('./data'),
     GOTIT_VAULT_PATH: z.string().default(''),
+    GOTIT_SEARXNG_URL: z.string().default('http://localhost:8888'),
     PORT: z.coerce.number().int().positive().default(3000),
     LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
   })
@@ -45,6 +46,7 @@ export type Config = {
   databaseUrl: string
   dataDir: string
   vaultPath: string
+  searxngUrl: string
   port: number
   logLevel: 'error' | 'warn' | 'info' | 'debug'
 }
@@ -70,6 +72,7 @@ export function loadConfig(env: NodeJS.ProcessEnv | Record<string, string | unde
     databaseUrl: parsed.GOTIT_DATABASE_URL,
     dataDir: parsed.GOTIT_DATA_DIR,
     vaultPath: parsed.GOTIT_VAULT_PATH,
+    searxngUrl: parsed.GOTIT_SEARXNG_URL,
     port: parsed.PORT,
     logLevel: parsed.LOG_LEVEL,
   }

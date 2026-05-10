@@ -101,4 +101,21 @@ describe('loadConfig', () => {
     })
     expect(cfg.vaultPath).toBe('/Users/me/Vault')
   })
+
+  it('parses GOTIT_SEARXNG_URL with default', () => {
+    const cfg = loadConfig({
+      OPENAI_API_KEY: 'sk-test',
+      GOTIT_LLM_CONNECTOR: 'openai',
+    })
+    expect(cfg.searxngUrl).toBe('http://localhost:8888')
+  })
+
+  it('parses custom GOTIT_SEARXNG_URL', () => {
+    const cfg = loadConfig({
+      OPENAI_API_KEY: 'sk-test',
+      GOTIT_LLM_CONNECTOR: 'openai',
+      GOTIT_SEARXNG_URL: 'http://search.internal:9090',
+    })
+    expect(cfg.searxngUrl).toBe('http://search.internal:9090')
+  })
 })
