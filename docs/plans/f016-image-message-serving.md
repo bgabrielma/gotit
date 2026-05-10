@@ -337,7 +337,7 @@ cd apps/macos && xcodebuild -scheme GotIt -configuration Debug build -quiet 2>&1
 
 Expected: `** BUILD SUCCEEDED **`
 
-- [ ] **Step 3.4: Commit**
+- [x] **Step 3.4: Commit**
 
 ```bash
 git add apps/macos/Packages/GotItInfra/Sources/GotItInfra/API/URLSessionAPIClient.swift \
@@ -354,7 +354,7 @@ git commit -m "feat(infra): add imageURL(for:) helper and expose keychain in App
 - Create: `apps/macos/Packages/GotItUI/Tests/GotItUITests/Helpers/MockURLProtocol.swift`
 - Create: `apps/macos/Packages/GotItUI/Tests/GotItUITests/ImageLoaderTests.swift`
 
-- [ ] **Step 4.1: Create `MockURLProtocol` helper**
+- [x] **Step 4.1: Create `MockURLProtocol` helper**
 
 ```swift
 // apps/macos/Packages/GotItUI/Tests/GotItUITests/Helpers/MockURLProtocol.swift
@@ -400,7 +400,7 @@ func makeHTTPResponse(url: URL, statusCode: Int = 200) -> HTTPURLResponse {
 }
 ```
 
-- [ ] **Step 4.2: Create `ImageLoaderTests.swift` with failing tests**
+- [x] **Step 4.2: Create `ImageLoaderTests.swift` with failing tests**
 
 ```swift
 // apps/macos/Packages/GotItUI/Tests/GotItUITests/ImageLoaderTests.swift
@@ -489,7 +489,7 @@ private let validPNGBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADU
 }
 ```
 
-- [ ] **Step 4.3: Run tests — verify all fail (ImageLoader type does not exist yet)**
+- [x] **Step 4.3: Run tests — verify all fail (ImageLoader type does not exist yet)**
 
 ```bash
 swift test --package-path apps/macos/Packages/GotItUI 2>&1 | tail -30
@@ -505,7 +505,7 @@ Expected: compile errors — `ImageLoader` not found.
 
 - Create: `apps/macos/Packages/GotItUI/Sources/GotItUI/Chat/ImageLoader.swift`
 
-- [ ] **Step 5.1: Create `ImageLoader.swift`**
+- [x] **Step 5.1: Create `ImageLoader.swift`**
 
 ```swift
 // apps/macos/Packages/GotItUI/Sources/GotItUI/Chat/ImageLoader.swift
@@ -570,7 +570,7 @@ final class ImageLoader: ObservableObject {
 }
 ```
 
-- [ ] **Step 5.2: Run `ImageLoader` tests — verify all pass**
+- [x] **Step 5.2: Run `ImageLoader` tests — verify all pass**
 
 ```bash
 swift test --package-path apps/macos/Packages/GotItUI --filter ImageLoaderTests 2>&1 | tail -20
@@ -578,7 +578,7 @@ swift test --package-path apps/macos/Packages/GotItUI --filter ImageLoaderTests 
 
 Expected: 5 tests pass — `startsInLoadingState`, `transitionsToLoadedOnValidPNGResponse`, `attachesAuthorizationHeader`, `transitionsToFailedOnNonImageData`, `transitionsToFailedOnNetworkError`, `cancelDoesNotCrash`.
 
-- [ ] **Step 5.3: Run full GotItUI test suite — no regressions**
+- [x] **Step 5.3: Run full GotItUI test suite — no regressions**
 
 ```bash
 swift test --package-path apps/macos/Packages/GotItUI 2>&1 | tail -10
