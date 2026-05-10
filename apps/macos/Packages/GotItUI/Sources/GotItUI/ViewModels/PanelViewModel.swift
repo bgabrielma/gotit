@@ -79,6 +79,14 @@ public final class PanelViewModel: ObservableObject {
 
     public func cancelPendingScreenshot() async { pendingScreenshot = nil }
 
+    public func dismissToast() {
+        events.removeAll {
+            if case .toast = $0 { return true }
+            if case .savedTo = $0 { return true }
+            return false
+        }
+    }
+
     public var isShowingPermissionPrompt: Bool {
         guard let last = events.last else { return false }
         if case .permissionRequired = last { return true }

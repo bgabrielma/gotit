@@ -5,41 +5,6 @@ public struct PanelHostingView: View {
     public init(panel: PanelViewModel) { self.panel = panel }
 
     public var body: some View {
-        ZStack(alignment: .bottom) {
-            ChatView(panel: panel)
-            if let event = panel.events.last {
-                switch event {
-                case .toast(let text): ToastView(text).padding()
-                case .savedTo(let url): ToastView("Saved to \(url.lastPathComponent)") {
-                    let encoded = url.path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? url.path
-                    if let obsidianURL = URL(string: "obsidian://open?path=\(encoded)"),
-                       NSWorkspace.shared.open(obsidianURL) { return }
-                    NSWorkspace.shared.activateFileViewerSelecting([url])
-                }.padding()
-                case .reconnectRequired:
-                    PermissionPrompt(title: "Reconnect required.",
-                        message: "Your device session expired.", cta: "Retry") { /* wired by app */ }
-                        .padding()
-                case .permissionRequired(.screenRecording):
-                    PermissionPrompt(title: "Screen Recording needed",
-                        message: "Look again needs Screen Recording permission.",
-                        cta: "Open System Settings") {
-                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    }.padding()
-                case .permissionRequired(.vaultFolder):
-                    PermissionPrompt(title: "Choose your captures folder",
-                        message: "GotIt! saves Markdown files into a folder you pick.",
-                        cta: "Choose…") {
-                        if let url = VaultFolderPicker.choose() {
-                            panel.didChooseVaultFolder(url)
-                        }
-                    }.padding()
-                case .offlineChanged: EmptyView()
-                case .error(let s): ToastView("Error: \(s)").padding()
-                }
-            }
-        }
+        ChatView(panel: panel)
     }
 }
