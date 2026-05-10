@@ -7,7 +7,10 @@ public final class PanelViewModel: ObservableObject {
     @Published public var events: [PanelEvent] = []
     @Published public var isWorking = false
     @Published public var pendingCaptureImage: Data? = nil
-    @Published public var isAwaitingScreenshot = false
+    @Published public var isAwaitingScreenshot = false {
+        didSet { awaitingScreenshotSince = isAwaitingScreenshot ? Date() : nil }
+    }
+    private var awaitingScreenshotSince: Date?
     public let chat: ChatViewModel
 
     private let api: APIClient
@@ -16,7 +19,7 @@ public final class PanelViewModel: ObservableObject {
     private let bookmark: SecureBookmarkStore
     private let monitor: OfflineMonitor
     @Published private var pendingScreenshot: URL?
-    private var isProcessingScreenshot = false
+    @Published private(set) var isProcessingScreenshot = false
 
     public init(api: APIClient,
                 capture: ScreenCaptureService,
@@ -62,6 +65,10 @@ public final class PanelViewModel: ObservableObject {
 
     public func handleScreenshot(at url: URL, graceSeconds: Double) async {
         guard !isProcessingScreenshot, isAwaitingScreenshot else { return }
+        if let since = awaitingScreenshotSince {
+            let created = (try? url.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? Date()
+            guard created >= since.addingTimeInterval(-2) else { return }
+        }
         isProcessingScreenshot = true
         isAwaitingScreenshot = false
         defer { isProcessingScreenshot = false }
