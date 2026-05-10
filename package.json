@@ -12,6 +12,7 @@
     "test": "pnpm -r test",
     "purity-check": "node scripts/purity-check.mjs",
     "test:macos": "swift test --package-path apps/macos/Packages/GotItModels && swift test --package-path apps/macos/Packages/GotItInfra && swift test --package-path apps/macos/Packages/GotItUI && xcodebuild -scheme GotIt -project apps/macos/GotIt.xcodeproj -destination 'platform=macOS,arch=arm64' test -quiet",
+    "build:macos": "bash scripts/build-macos.sh",
     "validate": "pnpm typecheck && pnpm lint && pnpm test && pnpm purity-check",
     "dev": "pnpm --filter @got-it/api dev",
     "docs:build": "mmdc -i docs/architecture.mmd -o docs/architecture.svg",

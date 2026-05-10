@@ -45,8 +45,7 @@ targets:
         SWIFT_VERSION: "5.10"
         MACOSX_DEPLOYMENT_TARGET: "13.0"
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: ""
-        CODE_SIGN_IDENTITY: "-"
+        DEVELOPMENT_TEAM: 34NC6ZMVXC
         ENABLE_HARDENED_RUNTIME: false
     dependencies:
       - package: GotItModels
@@ -64,8 +63,7 @@ targets:
         SWIFT_VERSION: "5.10"
         MACOSX_DEPLOYMENT_TARGET: "13.0"
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: ""
-        CODE_SIGN_IDENTITY: "-"
+        DEVELOPMENT_TEAM: 34NC6ZMVXC
         TEST_TARGET_NAME: GotIt
         GENERATE_INFOPLIST_FILE: YES
     dependencies:

@@ -4,17 +4,26 @@ public struct NotificationBar: View {
     let icon: String
     let text: String
     var tint: Color = .accentColor
-    var onTap: (() -> Void)? = nil
+    var autoDismissAfter: TimeInterval? = nil
+    var onDismiss: (() -> Void)? = nil
+    var onAction: (() -> Void)? = nil
 
-    @State private var appeared = false
+    @State private var opacity: Double = 0
+    @State private var yOffset: CGFloat = 6
+    @State private var isDismissing = false
+    @State private var autoDismissTask: Task<Void, Never>? = nil
 
-    public init(icon: String, text: String, tint: Color = .accentColor, onTap: (() -> Void)? = nil) {
-        self.icon = icon; self.text = text; self.tint = tint; self.onTap = onTap
+    public init(icon: String, text: String, tint: Color = .accentColor,
+                autoDismissAfter: TimeInterval? = nil,
+                onDismiss: (() -> Void)? = nil,
+                onAction: (() -> Void)? = nil) {
+        self.icon = icon; self.text = text; self.tint = tint
+        self.autoDismissAfter = autoDismissAfter
+        self.onDismiss = onDismiss; self.onAction = onAction
     }
 
     public var body: some View {
         HStack(spacing: 12) {
-            // Colored icon pill
             Image(systemName: icon)
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(tint)
@@ -28,7 +37,7 @@ public struct NotificationBar: View {
 
             Spacer(minLength: 0)
 
-            if onTap != nil {
+            if onAction != nil {
                 Image(systemName: "chevron.right")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
@@ -46,12 +55,31 @@ public struct NotificationBar: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : 6)
+        .opacity(opacity)
+        .offset(y: yOffset)
         .onAppear {
-            withAnimation(.easeOut(duration: 0.2)) { appeared = true }
+            withAnimation(.easeOut(duration: 0.2)) { opacity = 1; yOffset = 0 }
+            if let delay = autoDismissAfter {
+                autoDismissTask = Task {
+                    try? await Task.sleep(for: .seconds(delay))
+                    await fadeOut()
+                }
+            }
         }
+        .onDisappear { autoDismissTask?.cancel() }
         .contentShape(Rectangle())
-        .onTapGesture { onTap?() }
+        .onTapGesture {
+            onAction?()
+            Task { await fadeOut() }
+        }
+    }
+
+    @MainActor
+    private func fadeOut() async {
+        guard !isDismissing else { return }
+        isDismissing = true
+        withAnimation(.easeOut(duration: 0.25)) { opacity = 0 }
+        try? await Task.sleep(for: .seconds(0.25))
+        onDismiss?()
     }
 }

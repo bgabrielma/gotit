@@ -17,7 +17,7 @@ public struct InputBar: View {
 
     public var body: some View {
         HStack(spacing: 8) {
-            TextField("Ask anything��", text: $text)
+            TextField("Ask anything…", text: $text)
                 .textFieldStyle(.roundedBorder)
                 .onSubmit(onSend)
                 .disabled(isBusy)

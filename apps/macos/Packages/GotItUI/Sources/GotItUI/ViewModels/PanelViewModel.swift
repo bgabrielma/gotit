@@ -81,9 +81,10 @@ public final class PanelViewModel: ObservableObject {
 
     public func dismissToast() {
         events.removeAll {
-            if case .toast = $0 { return true }
-            if case .savedTo = $0 { return true }
-            return false
+            switch $0 {
+            case .toast, .savedTo, .error: return true
+            default: return false
+            }
         }
     }
 

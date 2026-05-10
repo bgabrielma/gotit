@@ -1,10 +1,15 @@
 import Foundation
 import ScreenCaptureKit
 import AppKit
+import CoreGraphics
 
 @available(macOS 14.0, *)
 internal final class ScreenCaptureKitService: ScreenCaptureService, @unchecked Sendable {
     func captureActiveDisplay() async throws -> Data {
+        guard CGPreflightScreenCaptureAccess() else {
+            throw ScreenCaptureError.permissionDenied
+        }
+
         let content: SCShareableContent
         do {
             content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)

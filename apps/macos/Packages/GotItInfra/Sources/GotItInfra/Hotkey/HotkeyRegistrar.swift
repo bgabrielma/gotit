@@ -2,7 +2,7 @@ import Foundation
 import KeyboardShortcuts
 
 extension KeyboardShortcuts.Name {
-    public static let openPanel = Self("openPanel", default: .init(.space, modifiers: [.command, .shift]))
+    public static let openPanel = Self("openPanel", default: .init(.g, modifiers: [.command, .option]))
 }
 
 public protocol HotkeyRegistrar: Sendable {

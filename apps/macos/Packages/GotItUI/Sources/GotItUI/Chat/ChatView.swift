@@ -82,22 +82,22 @@ public struct ChatView: View {
             if let event = panel.events.last {
                 switch event {
                 case .toast(let text):
-                    NotificationBar(icon: "camera", text: text)
-                        .task(id: event) {
-                            try? await Task.sleep(for: .seconds(5))
-                            panel.dismissToast()
-                        }
+                    NotificationBar(icon: "camera", text: text,
+                                    autoDismissAfter: 5, onDismiss: { panel.dismissToast() })
                 case .savedTo(let url):
-                    NotificationBar(icon: "checkmark.circle.fill", text: "Saved to \(url.lastPathComponent)", tint: .green) {
-                        let encoded = url.path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? url.path
-                        if let obsidianURL = URL(string: "obsidian://open?path=\(encoded)"),
-                           NSWorkspace.shared.open(obsidianURL) { return }
-                        NSWorkspace.shared.activateFileViewerSelecting([url])
-                    }
-                    .task(id: event) {
-                        try? await Task.sleep(for: .seconds(5))
-                        panel.dismissToast()
-                    }
+                    NotificationBar(
+                        icon: "checkmark.circle.fill",
+                        text: "Saved to \(url.lastPathComponent)",
+                        tint: .green,
+                        autoDismissAfter: 5,
+                        onDismiss: { panel.dismissToast() },
+                        onAction: {
+                            let encoded = url.path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? url.path
+                            if let obsidianURL = URL(string: "obsidian://open?path=\(encoded)"),
+                               NSWorkspace.shared.open(obsidianURL) { return }
+                            NSWorkspace.shared.activateFileViewerSelecting([url])
+                        }
+                    )
                 case .permissionRequired(.screenRecording):
                     PermissionPrompt(
                         title: "Screen Recording needed",
@@ -126,11 +126,8 @@ public struct ChatView: View {
                     ) { }
                     .padding(.horizontal, 8).padding(.top, 4)
                 case .error(let s):
-                    NotificationBar(icon: "exclamationmark.circle", text: s, tint: .red)
-                        .task(id: event) {
-                            try? await Task.sleep(for: .seconds(5))
-                            panel.dismissToast()
-                        }
+                    NotificationBar(icon: "exclamationmark.circle", text: s, tint: .red,
+                                    autoDismissAfter: 5, onDismiss: { panel.dismissToast() })
                 case .offlineChanged:
                     EmptyView()
                 }
