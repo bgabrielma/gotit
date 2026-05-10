@@ -552,7 +552,7 @@ git commit -m "feat(tools): add PageFetcher wrapper for URL content extraction"
 
 This task extends `ChatAI` and its `OpenAIChatBackend` to support optional tool definitions and a single-iteration tool-call resolution loop. The public `ChatBackend` interface changes to accept optional tool-related args.
 
-- [ ] **Step 5.1: Update ChatBackend interface and ChatAI.complete() signature**
+- [x] **Step 5.1: Update ChatBackend interface and ChatAI.complete() signature**
 
 In `packages/api/src/infra/chat-ai.ts`, update the types at the top of the file:
 
@@ -591,7 +591,7 @@ complete(args: ChatCompleteArgs, options?: ChatCompleteOptions): Promise<string>
 }
 ```
 
-- [ ] **Step 5.2: Update OpenAIChatBackend to handle tool calls**
+- [x] **Step 5.2: Update OpenAIChatBackend to handle tool calls**
 
 Replace the `OpenAIChatBackend.complete()` method:
 
@@ -676,7 +676,7 @@ class OpenAIChatBackend implements ChatBackend {
 }
 ```
 
-- [ ] **Step 5.3: Add extractToolCall helper**
+- [x] **Step 5.3: Add extractToolCall helper**
 
 Add after the existing `extractOutputText` function:
 
@@ -724,17 +724,17 @@ function extractToolCall(payload: unknown): ToolCallInfo | null {
 }
 ```
 
-- [ ] **Step 5.4: Run existing tests to verify no regression**
+- [x] **Step 5.4: Run existing tests to verify no regression**
 
 Run: `cd packages/api && pnpm test`
 Expected: All existing tests PASS (the `ChatBackend` mock in `helper.ts` still works because `options` is optional)
 
-- [ ] **Step 5.5: Run typecheck**
+- [x] **Step 5.5: Run typecheck**
 
 Run: `cd packages/api && pnpm typecheck`
 Expected: PASS
 
-- [ ] **Step 5.6: Commit**
+- [x] **Step 5.6: Commit**
 
 ```bash
 git add packages/api/src/infra/chat-ai.ts
@@ -752,7 +752,7 @@ git commit -m "feat(infra): add tool-calling support to ChatAI with single-itera
 - Modify: `packages/api/src/app.ts`
 - Modify: `packages/api/src/__tests__/helper.ts`
 
-- [ ] **Step 6.1: Add imports and deps to app.ts**
+- [x] **Step 6.1: Add imports and deps to app.ts**
 
 In `packages/api/src/app.ts`:
 
@@ -798,7 +798,7 @@ export function createApp(deps: AppDeps): Express {
 }
 ```
 
-- [ ] **Step 6.2: Add mock factories to helper.ts**
+- [x] **Step 6.2: Add mock factories to helper.ts**
 
 In `packages/api/src/__tests__/helper.ts`, add imports and factory functions:
 
@@ -897,12 +897,12 @@ export function createTestApp(opts: TestAppOptions = {}): Express {
 }
 ```
 
-- [ ] **Step 6.3: Run all tests to verify no regression**
+- [x] **Step 6.3: Run all tests to verify no regression**
 
 Run: `cd packages/api && pnpm test`
 Expected: All existing tests PASS
 
-- [ ] **Step 6.4: Commit**
+- [x] **Step 6.4: Commit**
 
 ```bash
 git add packages/api/src/app.ts packages/api/src/__tests__/helper.ts
@@ -917,7 +917,7 @@ git commit -m "feat(app): add webSearchAI and pageFetcher to AppDeps"
 
 - Modify: `packages/api/src/routes/chat.ts`
 
-- [ ] **Step 7.1: Add tool-call wiring to chat route**
+- [x] **Step 7.1: Add tool-call wiring to chat route**
 
 Replace the contents of `packages/api/src/routes/chat.ts`:
 
@@ -1018,17 +1018,17 @@ function formatSearchResults(results: SearchResult[], pages: Map<string, string>
 }
 ```
 
-- [ ] **Step 7.2: Run all tests**
+- [x] **Step 7.2: Run all tests**
 
 Run: `cd packages/api && pnpm test`
 Expected: All tests PASS (existing chat tests still pass because `createChatAIMock` backend ignores the options arg)
 
-- [ ] **Step 7.3: Run typecheck**
+- [x] **Step 7.3: Run typecheck**
 
 Run: `cd packages/api && pnpm typecheck`
 Expected: PASS
 
-- [ ] **Step 7.4: Commit**
+- [x] **Step 7.4: Commit**
 
 ```bash
 git add packages/api/src/routes/chat.ts
@@ -1047,7 +1047,7 @@ git commit -m "feat(chat): wire web_search tool-call handler into chat route"
 
 - Modify: `packages/api/src/server.ts`
 
-- [ ] **Step 8.1: Add WebSearchAI and PageFetcher to server.ts**
+- [x] **Step 8.1: Add WebSearchAI and PageFetcher to server.ts**
 
 Update `packages/api/src/server.ts`:
 
@@ -1102,12 +1102,12 @@ main().catch((error: unknown) => {
 })
 ```
 
-- [ ] **Step 8.2: Run typecheck**
+- [x] **Step 8.2: Run typecheck**
 
 Run: `cd packages/api && pnpm typecheck`
 Expected: PASS
 
-- [ ] **Step 8.3: Commit**
+- [x] **Step 8.3: Commit**
 
 ```bash
 git add packages/api/src/server.ts
@@ -1123,7 +1123,7 @@ git commit -m "feat(server): wire WebSearchAI and PageFetcher at startup"
 - Modify: `docker-compose.yml`
 - Create: `searxng-settings.yml`
 
-- [ ] **Step 9.1: Create SearXNG settings file**
+- [x] **Step 9.1: Create SearXNG settings file**
 
 Create `searxng-settings.yml` at the repo root:
 
@@ -1145,7 +1145,7 @@ engines:
     shortcut: ddg
 ```
 
-- [ ] **Step 9.2: Add SearXNG service to docker-compose.yml**
+- [x] **Step 9.2: Add SearXNG service to docker-compose.yml**
 
 Add the `searxng` service after the `api` service and before the `volumes:` section:
 
@@ -1182,7 +1182,7 @@ depends_on:
     condition: service_healthy
 ```
 
-- [ ] **Step 9.3: Commit**
+- [x] **Step 9.3: Commit**
 
 ```bash
 git add docker-compose.yml searxng-settings.yml
@@ -1201,7 +1201,7 @@ git commit -m "feat(docker): add SearXNG service for web search"
 
 - Modify: `packages/api/src/__tests__/integration/routes/chat.test.ts`
 
-- [ ] **Step 10.1: Add tool-call integration tests**
+- [x] **Step 10.1: Add tool-call integration tests**
 
 Append to the existing `describe('POST /chat', ...)` block in `packages/api/src/__tests__/integration/routes/chat.test.ts`:
 
@@ -1320,17 +1320,17 @@ it('returns response even when search backend fails', async () => {
 })
 ```
 
-- [ ] **Step 10.2: Run integration tests**
+- [x] **Step 10.2: Run integration tests**
 
 Run: `cd packages/api && pnpm test src/__tests__/integration/routes/chat.test.ts`
 Expected: PASS
 
-- [ ] **Step 10.3: Run all tests**
+- [x] **Step 10.3: Run all tests**
 
 Run: `cd packages/api && pnpm test`
 Expected: All PASS
 
-- [ ] **Step 10.4: Commit**
+- [x] **Step 10.4: Commit**
 
 ```bash
 git add packages/api/src/__tests__/integration/routes/chat.test.ts
@@ -1345,7 +1345,7 @@ git commit -m "test(chat): add integration tests for web_search tool-call flow"
 
 - Modify: `packages/api/src/__tests__/integration/smoke/api.smoke.test.ts`
 
-- [ ] **Step 11.1: Add SearXNG connectivity smoke test**
+- [x] **Step 11.1: Add SearXNG connectivity smoke test**
 
 Append a new `describe` block at the end of `api.smoke.test.ts`:
 
@@ -1378,12 +1378,12 @@ describe('SearXNG smoke integration', () => {
 })
 ```
 
-- [ ] **Step 11.2: Run smoke tests (requires SearXNG running)**
+- [x] **Step 11.2: Run smoke tests (requires SearXNG running)**
 
 Run: `cd packages/api && pnpm test src/__tests__/integration/smoke/api.smoke.test.ts`
 Expected: PASS if SearXNG is running at `GOTIT_SEARXNG_URL`, FAIL/SKIP otherwise
 
-- [ ] **Step 11.3: Commit**
+- [x] **Step 11.3: Commit**
 
 ```bash
 git add packages/api/src/__tests__/integration/smoke/api.smoke.test.ts
@@ -1396,27 +1396,27 @@ git commit -m "test(smoke): add SearXNG connectivity smoke test"
 
 ### Task 12: Full Validation Pass
 
-- [ ] **Step 12.1: Run full typecheck**
+- [x] **Step 12.1: Run full typecheck**
 
 Run: `pnpm typecheck`
 Expected: PASS across all packages
 
-- [ ] **Step 12.2: Run full lint**
+- [x] **Step 12.2: Run full lint**
 
 Run: `pnpm lint`
 Expected: PASS, zero warnings
 
-- [ ] **Step 12.3: Run full test suite**
+- [x] **Step 12.3: Run full test suite**
 
 Run: `pnpm test`
 Expected: All tests PASS
 
-- [ ] **Step 12.4: Verify no core package contamination**
+- [x] **Step 12.4: Verify no core package contamination**
 
 Run: `pnpm purity-check`
 Expected: PASS — no I/O in `packages/core/`
 
-- [ ] **Step 12.5: Verify spec terminology conformance**
+- [x] **Step 12.5: Verify spec terminology conformance**
 
 Verify the following terms appear in code matching the spec:
 
