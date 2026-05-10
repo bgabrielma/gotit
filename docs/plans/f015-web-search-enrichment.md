@@ -4,7 +4,7 @@
 
 **Goal:** Add tool-calling web search to the chat pipeline so the LLM can autonomously search the internet via SearXNG when it needs more information.
 
-**Architecture:** New infra wrappers `WebSearchAI` and `PageFetcher` follow the existing `VisionAI`/`ChatAI` pattern (`.create()` + `.fromBackend()`). `ChatAI.complete()` gains optional tool-calling with a single-iteration resolution loop. The chat route wires a `web_search` tool that queries SearXNG and fetches top page content. All changes are in `packages/api` — no core or client changes.
+**Architecture:** New tool wrappers `WebSearchAI` and `PageFetcher` follow the existing `VisionAI`/`ChatAI` pattern (`.create()` + `.fromBackend()`). `ChatAI.complete()` gains optional tool-calling with a single-iteration resolution loop. The chat route wires a `web_search` tool that queries SearXNG and fetches top page content. All changes are in `packages/api` — no core or client changes.
 
 **Tech Stack:** TypeScript, Express, OpenAI SDK (tool-calling), SearXNG (Docker), Vitest
 
@@ -16,10 +16,10 @@
 
 | Action | File                                                             | Responsibility                                      |
 | ------ | ---------------------------------------------------------------- | --------------------------------------------------- |
-| Create | `packages/api/src/infra/web-search-ai.ts`                        | SearXNG infra wrapper                               |
-| Create | `packages/api/src/infra/page-fetcher.ts`                         | URL content extraction infra wrapper                |
-| Create | `packages/api/src/__tests__/unit/infra/web-search-ai.test.ts`    | Unit tests for WebSearchAI                          |
-| Create | `packages/api/src/__tests__/unit/infra/page-fetcher.test.ts`     | Unit tests for PageFetcher                          |
+| Create | `packages/api/src/tools/web-search-ai.ts`                        | SearXNG tool wrapper                                |
+| Create | `packages/api/src/tools/page-fetcher.ts`                         | URL content extraction tool wrapper                 |
+| Create | `packages/api/src/__tests__/unit/tools/web-search-ai.test.ts`    | Unit tests for WebSearchAI                          |
+| Create | `packages/api/src/__tests__/unit/tools/page-fetcher.test.ts`     | Unit tests for PageFetcher                          |
 | Modify | `packages/api/src/infra/chat-ai.ts`                              | Add tool-calling support                            |
 | Modify | `packages/api/src/prompts/defaults.ts`                           | Add web search tool definition + update chat prompt |
 | Modify | `packages/api/src/config.ts`                                     | Add `GOTIT_SEARXNG_URL`                             |
@@ -179,20 +179,20 @@ git commit -m "feat(prompts): add web_search tool definition and update chat pro
 
 ---
 
-## Wave 2 — Infrastructure Wrappers (Tasks 3-4, parallelizable)
+## Wave 2 — Tool Wrappers (Tasks 3-4, parallelizable)
 
 > **Parallel execution:** Tasks 3 and 4 are independent. Use `superpowers:dispatching-parallel-agents` to run them simultaneously.
 
-### Task 3: WebSearchAI Infrastructure Wrapper
+### Task 3: WebSearchAI Tool Wrapper
 
 **Files:**
 
-- Create: `packages/api/src/infra/web-search-ai.ts`
-- Create: `packages/api/src/__tests__/unit/infra/web-search-ai.test.ts`
+- Create: `packages/api/src/tools/web-search-ai.ts`
+- Create: `packages/api/src/__tests__/unit/tools/web-search-ai.test.ts`
 
 - [x] **Step 3.1: Write failing tests for WebSearchAI**
 
-Create `packages/api/src/__tests__/unit/infra/web-search-ai.test.ts`:
+Create `packages/api/src/__tests__/unit/tools/web-search-ai.test.ts`:
 
 ```typescript
 import { describe, expect, it, vi } from 'vitest'
@@ -200,7 +200,7 @@ import {
   WebSearchAI,
   type WebSearchBackend,
   type SearchResult,
-} from '../../../infra/web-search-ai.js'
+} from '../../../tools/web-search-ai.js'
 
 const SAMPLE_RESULTS: SearchResult[] = [
   { title: 'Example Page', url: 'https://example.com', snippet: 'An example page for testing.' },
@@ -257,12 +257,12 @@ describe('WebSearchAI', () => {
 
 - [x] **Step 3.2: Run tests, expect failure**
 
-Run: `cd packages/api && pnpm test src/__tests__/unit/infra/web-search-ai.test.ts`
+Run: `cd packages/api && pnpm test src/__tests__/unit/tools/web-search-ai.test.ts`
 Expected: FAIL — module not found
 
 - [x] **Step 3.3: Implement WebSearchAI**
 
-Create `packages/api/src/infra/web-search-ai.ts`:
+Create `packages/api/src/tools/web-search-ai.ts`:
 
 ```typescript
 export type SearchResult = {
@@ -331,7 +331,7 @@ class SearXNGBackend implements WebSearchBackend {
 
 - [x] **Step 3.4: Run tests, expect pass**
 
-Run: `cd packages/api && pnpm test src/__tests__/unit/infra/web-search-ai.test.ts`
+Run: `cd packages/api && pnpm test src/__tests__/unit/tools/web-search-ai.test.ts`
 Expected: PASS
 
 - [x] **Step 3.5: Run typecheck**
@@ -339,29 +339,29 @@ Expected: PASS
 Run: `cd packages/api && pnpm typecheck`
 Expected: PASS
 
-- [ ] **Step 3.6: Commit**
+- [x] **Step 3.6: Commit**
 
 ```bash
-git add packages/api/src/infra/web-search-ai.ts packages/api/src/__tests__/unit/infra/web-search-ai.test.ts
-git commit -m "feat(infra): add WebSearchAI wrapper for SearXNG"
+git add packages/api/src/tools/web-search-ai.ts packages/api/src/__tests__/unit/tools/web-search-ai.test.ts
+git commit -m "feat(tools): add WebSearchAI wrapper for SearXNG"
 ```
 
 ---
 
-### Task 4: PageFetcher Infrastructure Wrapper
+### Task 4: PageFetcher Tool Wrapper
 
 **Files:**
 
-- Create: `packages/api/src/infra/page-fetcher.ts`
-- Create: `packages/api/src/__tests__/unit/infra/page-fetcher.test.ts`
+- Create: `packages/api/src/tools/page-fetcher.ts`
+- Create: `packages/api/src/__tests__/unit/tools/page-fetcher.test.ts`
 
-- [ ] **Step 4.1: Write failing tests for PageFetcher**
+- [x] **Step 4.1: Write failing tests for PageFetcher**
 
-Create `packages/api/src/__tests__/unit/infra/page-fetcher.test.ts`:
+Create `packages/api/src/__tests__/unit/tools/page-fetcher.test.ts`:
 
 ```typescript
 import { describe, expect, it, vi } from 'vitest'
-import { PageFetcher, type PageFetchBackend } from '../../../infra/page-fetcher.js'
+import { PageFetcher, type PageFetchBackend } from '../../../tools/page-fetcher.js'
 
 describe('PageFetcher', () => {
   it('delegates fetch to backend and returns extracted text', async () => {
@@ -435,14 +435,14 @@ describe('PageFetcher', () => {
 })
 ```
 
-- [ ] **Step 4.2: Run tests, expect failure**
+- [x] **Step 4.2: Run tests, expect failure**
 
-Run: `cd packages/api && pnpm test src/__tests__/unit/infra/page-fetcher.test.ts`
+Run: `cd packages/api && pnpm test src/__tests__/unit/tools/page-fetcher.test.ts`
 Expected: FAIL — module not found
 
-- [ ] **Step 4.3: Implement PageFetcher**
+- [x] **Step 4.3: Implement PageFetcher**
 
-Create `packages/api/src/infra/page-fetcher.ts`:
+Create `packages/api/src/tools/page-fetcher.ts`:
 
 ```typescript
 const MAX_PAGE_CHARS = 2000
@@ -523,21 +523,21 @@ function stripHtml(html: string): string {
 }
 ```
 
-- [ ] **Step 4.4: Run tests, expect pass**
+- [x] **Step 4.4: Run tests, expect pass**
 
-Run: `cd packages/api && pnpm test src/__tests__/unit/infra/page-fetcher.test.ts`
+Run: `cd packages/api && pnpm test src/__tests__/unit/tools/page-fetcher.test.ts`
 Expected: PASS
 
-- [ ] **Step 4.5: Run typecheck**
+- [x] **Step 4.5: Run typecheck**
 
 Run: `cd packages/api && pnpm typecheck`
 Expected: PASS
 
-- [ ] **Step 4.6: Commit**
+- [x] **Step 4.6: Commit**
 
 ```bash
-git add packages/api/src/infra/page-fetcher.ts packages/api/src/__tests__/unit/infra/page-fetcher.test.ts
-git commit -m "feat(infra): add PageFetcher wrapper for URL content extraction"
+git add packages/api/src/tools/page-fetcher.ts packages/api/src/__tests__/unit/tools/page-fetcher.test.ts
+git commit -m "feat(tools): add PageFetcher wrapper for URL content extraction"
 ```
 
 ---
@@ -761,8 +761,8 @@ import express, { type Express } from 'express'
 import type { StoreBackend } from './infra/store.js'
 import type { VisionAI } from './infra/vision-ai.js'
 import type { ChatAI } from './infra/chat-ai.js'
-import type { WebSearchAI } from './infra/web-search-ai.js'
-import type { PageFetcher } from './infra/page-fetcher.js'
+import type { WebSearchAI } from './tools/web-search-ai.js'
+import type { PageFetcher } from './tools/page-fetcher.js'
 import { healthRoute } from './routes/health.js'
 import { deviceRoute } from './routes/device.js'
 import { sessionsRouter } from './routes/sessions.js'
@@ -805,8 +805,8 @@ In `packages/api/src/__tests__/helper.ts`, add imports and factory functions:
 Add at the top with other imports:
 
 ```typescript
-import { WebSearchAI, type SearchResult } from '../infra/web-search-ai.js'
-import { PageFetcher } from '../infra/page-fetcher.js'
+import { WebSearchAI, type SearchResult } from '../tools/web-search-ai.js'
+import { PageFetcher } from '../tools/page-fetcher.js'
 ```
 
 Add the `WebSearchAI` and `PageFetcher` fields to `TestAppOptions`:
@@ -929,7 +929,7 @@ import { buildChatRequest } from '@got-it/core'
 import type { Message } from '@got-it/shared'
 import type { AppDeps } from '../app.js'
 import type { ChatCompleteOptions, ToolCallHandler } from '../infra/chat-ai.js'
-import type { SearchResult } from '../infra/web-search-ai.js'
+import type { SearchResult } from '../tools/web-search-ai.js'
 import { DEFAULT_WEB_SEARCH_TOOL } from '../prompts/defaults.js'
 import { deviceAuth } from '../middleware/auth.js'
 
@@ -1059,10 +1059,10 @@ import { createApp } from './app.js'
 import { loadServerConfig } from './config.js'
 import { ChatAI } from './infra/chat-ai.js'
 import { LLMConnectorConfig } from './infra/llm-connector-config.js'
-import { PageFetcher } from './infra/page-fetcher.js'
+import { PageFetcher } from './tools/page-fetcher.js'
 import { Store } from './infra/store.js'
 import { VisionAI } from './infra/vision-ai.js'
-import { WebSearchAI } from './infra/web-search-ai.js'
+import { WebSearchAI } from './tools/web-search-ai.js'
 import { DEFAULT_CHAT_PROMPT, DEFAULT_VISION_PROMPT } from './prompts/defaults.js'
 
 const cfg = loadServerConfig(import.meta.url)
@@ -1350,7 +1350,7 @@ git commit -m "test(chat): add integration tests for web_search tool-call flow"
 Append a new `describe` block at the end of `api.smoke.test.ts`:
 
 ```typescript
-import { WebSearchAI } from '../../../infra/web-search-ai.js'
+import { WebSearchAI } from '../../../tools/web-search-ai.js'
 import { loadConfig } from '../../../config.js'
 ```
 
@@ -1420,11 +1420,11 @@ Expected: PASS — no I/O in `packages/core/`
 
 Verify the following terms appear in code matching the spec:
 
-- `WebSearchAI` class in `packages/api/src/infra/web-search-ai.ts`
-- `PageFetcher` class in `packages/api/src/infra/page-fetcher.ts`
-- `SearchResult` type in `packages/api/src/infra/web-search-ai.ts`
-- `WebSearchBackend` interface in `packages/api/src/infra/web-search-ai.ts`
-- `PageFetchBackend` interface in `packages/api/src/infra/page-fetcher.ts`
+- `WebSearchAI` class in `packages/api/src/tools/web-search-ai.ts`
+- `PageFetcher` class in `packages/api/src/tools/page-fetcher.ts`
+- `SearchResult` type in `packages/api/src/tools/web-search-ai.ts`
+- `WebSearchBackend` interface in `packages/api/src/tools/web-search-ai.ts`
+- `PageFetchBackend` interface in `packages/api/src/tools/page-fetcher.ts`
 - `DEFAULT_WEB_SEARCH_TOOL` in `packages/api/src/prompts/defaults.ts`
 - `web_search` tool name in prompt definition
 - `searxngUrl` in Config type
@@ -1432,11 +1432,11 @@ Verify the following terms appear in code matching the spec:
 Run:
 
 ```bash
-grep -n "WebSearchAI" packages/api/src/infra/web-search-ai.ts
-grep -n "PageFetcher" packages/api/src/infra/page-fetcher.ts
-grep -n "SearchResult" packages/api/src/infra/web-search-ai.ts
-grep -n "WebSearchBackend" packages/api/src/infra/web-search-ai.ts
-grep -n "PageFetchBackend" packages/api/src/infra/page-fetcher.ts
+grep -n "WebSearchAI" packages/api/src/tools/web-search-ai.ts
+grep -n "PageFetcher" packages/api/src/tools/page-fetcher.ts
+grep -n "SearchResult" packages/api/src/tools/web-search-ai.ts
+grep -n "WebSearchBackend" packages/api/src/tools/web-search-ai.ts
+grep -n "PageFetchBackend" packages/api/src/tools/page-fetcher.ts
 grep -n "DEFAULT_WEB_SEARCH_TOOL" packages/api/src/prompts/defaults.ts
 grep -n "web_search" packages/api/src/prompts/defaults.ts
 grep -n "searxngUrl" packages/api/src/config.ts

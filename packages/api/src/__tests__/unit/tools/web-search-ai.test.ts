@@ -3,7 +3,7 @@ import {
   WebSearchAI,
   type SearchResult,
   type WebSearchBackend,
-} from '../../../infra/web-search-ai.js'
+} from '../../../tools/web-search-ai.js'
 
 const SAMPLE_RESULTS: SearchResult[] = [
   { title: 'Example Page', url: 'https://example.com', snippet: 'An example page for testing.' },

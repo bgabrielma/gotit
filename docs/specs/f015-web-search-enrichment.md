@@ -19,14 +19,14 @@ In both cases, the model itself decides to invoke the `web_search` tool — no k
 
 Entirely server-side in `packages/api`. No client changes. No `packages/core` changes (search is I/O, not pure logic).
 
-### 3.1 New Infrastructure Wrappers
+### 3.1 New Tool Wrappers
 
 | Component     | File                                      | Responsibility                                       |
 | ------------- | ----------------------------------------- | ---------------------------------------------------- |
-| `WebSearchAI` | `packages/api/src/infra/web-search-ai.ts` | Queries SearXNG JSON API, returns structured results |
-| `PageFetcher` | `packages/api/src/infra/page-fetcher.ts`  | Fetches and extracts text content from URLs          |
+| `WebSearchAI` | `packages/api/src/tools/web-search-ai.ts` | Queries SearXNG JSON API, returns structured results |
+| `PageFetcher` | `packages/api/src/tools/page-fetcher.ts`  | Fetches and extracts text content from URLs          |
 
-Both follow the existing infra wrapper pattern:
+Both follow the existing tool wrapper pattern:
 
 - `*.create(...)` — production constructor
 - `*.fromBackend(...)` — test injection
@@ -231,8 +231,8 @@ All server-side. No client test changes. No core package tests.
 
 | File                                         | Tests                                                                       |
 | -------------------------------------------- | --------------------------------------------------------------------------- |
-| `__tests__/unit/infra/web-search-ai.test.ts` | Query passthrough, result formatting, empty results, error handling         |
-| `__tests__/unit/infra/page-fetcher.test.ts`  | Text extraction, timeout behavior, partial failures (1/3 fails → returns 2) |
+| `__tests__/unit/tools/web-search-ai.test.ts` | Query passthrough, result formatting, empty results, error handling         |
+| `__tests__/unit/tools/page-fetcher.test.ts`  | Text extraction, timeout behavior, partial failures (1/3 fails → returns 2) |
 
 ### 10.2 Integration Tests
 
@@ -265,8 +265,8 @@ Extend `__tests__/integration/smoke/api.smoke.test.ts`:
 | ------------------------- | ----------------------------------------- |
 | Web search enrichment     | Feature name (F015)                       |
 | `web_search`              | Tool name (LLM tool definition)           |
-| `WebSearchAI`             | Infrastructure wrapper class              |
-| `PageFetcher`             | Infrastructure wrapper class              |
+| `WebSearchAI`             | Tool wrapper class                        |
+| `PageFetcher`             | Tool wrapper class                        |
 | `SearchResult`            | Type: `{ title, url, snippet }`           |
 | `WebSearchBackend`        | Backend interface for test injection      |
 | `PageFetchBackend`        | Backend interface for test injection      |
