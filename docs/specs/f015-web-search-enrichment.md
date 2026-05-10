@@ -1,7 +1,7 @@
 # F015 — Web Search Enrichment
 
 > **Status:** Draft
-> **Depends on:** F001 (Screen Capture + Chat MVP)
+> **Depends on:** None
 > **Phase:** Single phase
 
 ## 1. Purpose

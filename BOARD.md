@@ -19,7 +19,7 @@
   - Introduces: `docker-compose.yml`, Postgres `Store` adapter (still behind same protocol), Postgres-dialect migrations, env var changes.
 
 - [ ] **F015** Web Search Enrichment — LLM tool-calling web search via SearXNG. When the model detects unclear OCR or the user asks for more details, it autonomously searches the internet and enriches responses with search results + page content. Entirely server-side, no client changes.
-  - Depends on: F001
+  - Depends on: _none_
   - Spec: `docs/specs/f015-web-search-enrichment.md` ✓
   - Plan: `docs/plans/f015-web-search-enrichment.md` ✓ **ready for implementation** (12 tasks, 7 waves)
 
@@ -82,5 +82,5 @@ graph LR
     F002 --> F008[F008: Notion]
     F001 --> F009[F009: Local Models]
     F001 --> F011[F011: Advanced History]
-    F001 --> F015[F015: Web Search]
+    F015[F015: Web Search]
 ```

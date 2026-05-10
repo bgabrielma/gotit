@@ -21,7 +21,7 @@
 | F003 Advanced Audio Workflows    | Blocked                                                 | 0/0                                    | —                                        | —     | F001    |
 | F004 Custom System Prompt UI     | Blocked                                                 | 0/0                                    | —                                        | —     | F001    |
 | F005 Stealth Rendering           | Blocked                                                 | 0/0                                    | —                                        | —     | F001    |
-| F015 Web Search Enrichment       | Spec + plan complete, ready for implementation          | 0/12 tasks                             | —                                        | —     | F001    |
+| F015 Web Search Enrichment       | Spec + plan complete, ready for implementation          | 0/12 tasks                             | —                                        | —     | None    |
 
 ## Active Artifacts
 
