@@ -22,6 +22,11 @@
 
 _No feature queued. F014 is now in progress._
 
+- [ ] **F015** Web Search Enrichment — LLM tool-calling web search via SearXNG. When the model detects unclear OCR or the user asks for more details, it autonomously searches the internet and enriches responses with search results + page content. Entirely server-side, no client changes.
+  - Depends on: F001
+  - Spec: `docs/specs/f015-web-search-enrichment.md` ✓
+  - Plan: `docs/plans/f015-web-search-enrichment.md` ✓ **ready for implementation** (12 tasks, 7 waves)
+
 ## Backlog (Prioritized)
 
 - [ ] **F013** Obsidian Plugin Delivery — Real Obsidian plugin (TypeScript, Obsidian plugin API) plus SSE delivery from the backend. Replaces the Phase 1a direct file-write path with a proper Vault API write. Unlocks cross-client reuse (F007) and proper indexing/sync. Phase 1a chooses file-write delivery as a deliberate stop-gap; F013 is the durable answer and is sequenced **after F014, ahead of F002**.
@@ -56,7 +61,7 @@ _No feature queued. F014 is now in progress._
 ## Icebox
 
 - [ ] **F008** Notion Integration — Alternative storage backend to Obsidian
-- [ ] **F009** Local Model Support — Ollama/llama.cpp for offline/privacy-first usage
+- [x] **F009** Local Model Support — Ollama/llama.cpp for offline/privacy-first usage (infrastructure already landed: `GOTIT_LLM_CONNECTOR=ollama` works with OpenAI-compatible API)
 - [ ] **F010** Browser Extension — Companion extension for richer URL/content extraction
 - [ ] **F011** Advanced History Management — Search, filters, pinning, export, and richer organization for persisted sessions
 - [ ] **F012** Smart Categorization — AI auto-tags and categorizes saved content
@@ -77,4 +82,5 @@ graph LR
     F002 --> F008[F008: Notion]
     F001 --> F009[F009: Local Models]
     F001 --> F011[F011: Advanced History]
+    F001 --> F015[F015: Web Search]
 ```

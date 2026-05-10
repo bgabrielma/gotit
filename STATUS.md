@@ -21,6 +21,7 @@
 | F003 Advanced Audio Workflows    | Blocked                                                 | 0/0                                    | —                                        | —     | F001    |
 | F004 Custom System Prompt UI     | Blocked                                                 | 0/0                                    | —                                        | —     | F001    |
 | F005 Stealth Rendering           | Blocked                                                 | 0/0                                    | —                                        | —     | F001    |
+| F015 Web Search Enrichment       | Spec + plan complete, ready for implementation          | 0/12 tasks                             | —                                        | —     | F001    |
 
 ## Active Artifacts
 
@@ -28,6 +29,8 @@
 - Plan A (backend): `docs/plans/f001-phase-1a-backend.md` (28 tasks, COMPLETE, revalidated 9.5/10)
 - Plan B (macOS client): `docs/plans/f001-phase-1a-macos-client.md` (25 tasks, ready for implementation — pre-implementation review passed 2026-05-01)
 - Phases: 1a (current — Plan B in progress), 1b (mic), 1c (Listen), 1d (history)
+- F015 Spec: `docs/specs/f015-web-search-enrichment.md`
+- F015 Plan: `docs/plans/f015-web-search-enrichment.md` (12 tasks, 7 waves — ready for implementation)
 
 ## Validation Log
 

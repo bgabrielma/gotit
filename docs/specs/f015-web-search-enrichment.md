@@ -37,7 +37,7 @@ Both follow the existing infra wrapper pattern:
 | ---------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | `ChatAI`   | `packages/api/src/infra/chat-ai.ts`    | Add tool-calling support: optional `tools` param, `onToolCall` callback, single-iteration tool resolution loop |
 | Chat route | `packages/api/src/routes/chat.ts`      | Wire `WebSearchAI` + `PageFetcher` into `onToolCall` handler                                                   |
-| Defaults   | `packages/api/src/prompts/defaults.ts` | New `DEFAULT_WEB_SEARCH_TOOL_DESCRIPTION` export; update `DEFAULT_CHAT_PROMPT` with search awareness           |
+| Defaults   | `packages/api/src/prompts/defaults.ts` | New `DEFAULT_WEB_SEARCH_TOOL` export; update `DEFAULT_CHAT_PROMPT` with search awareness                       |
 | App deps   | `packages/api/src/app.ts`              | Add `webSearchAI` and `pageFetcher` to `AppDeps`                                                               |
 | Config     | `packages/api/src/config.ts`           | Add `GOTIT_SEARXNG_URL` env var (default `http://localhost:8888`)                                              |
 | Docker     | `docker-compose.yml`                   | Add SearXNG service                                                                                            |
@@ -83,7 +83,7 @@ LLM response
 
 ## 4. Tool Definition
 
-Defined in `packages/api/src/prompts/defaults.ts` as `DEFAULT_WEB_SEARCH_TOOL_DESCRIPTION`.
+Defined in `packages/api/src/prompts/defaults.ts` as `DEFAULT_WEB_SEARCH_TOOL`.
 
 ```json
 {
@@ -261,16 +261,16 @@ Extend `__tests__/integration/smoke/api.smoke.test.ts`:
 
 ## 11. Terminology
 
-| Spec Term                             | Code Symbol                          |
-| ------------------------------------- | ------------------------------------ |
-| Web search enrichment                 | Feature name (F015)                  |
-| `web_search`                          | Tool name (LLM tool definition)      |
-| `WebSearchAI`                         | Infrastructure wrapper class         |
-| `PageFetcher`                         | Infrastructure wrapper class         |
-| `SearchResult`                        | Type: `{ title, url, snippet }`      |
-| `WebSearchBackend`                    | Backend interface for test injection |
-| `PageFetchBackend`                    | Backend interface for test injection |
-| `DEFAULT_WEB_SEARCH_TOOL_DESCRIPTION` | Prompt constant in `defaults.ts`     |
+| Spec Term                 | Code Symbol                               |
+| ------------------------- | ----------------------------------------- |
+| Web search enrichment     | Feature name (F015)                       |
+| `web_search`              | Tool name (LLM tool definition)           |
+| `WebSearchAI`             | Infrastructure wrapper class              |
+| `PageFetcher`             | Infrastructure wrapper class              |
+| `SearchResult`            | Type: `{ title, url, snippet }`           |
+| `WebSearchBackend`        | Backend interface for test injection      |
+| `PageFetchBackend`        | Backend interface for test injection      |
+| `DEFAULT_WEB_SEARCH_TOOL` | Tool definition constant in `defaults.ts` |
 
 ## 12. Out of Scope
 
