@@ -6,6 +6,7 @@ import { ChatAI } from '../../../infra/chat-ai.js'
 import { loadConfig } from '../../../config.js'
 import { LLMConnectorConfig } from '../../../infra/llm-connector-config.js'
 import { VisionAI } from '../../../infra/vision-ai.js'
+import { WebSearchAI } from '../../../tools/web-search-ai.js'
 import { cleanupDir, ensureCleanDir, setupAuthedApp, tmpPath } from '../../helper.js'
 
 /**
@@ -57,6 +58,26 @@ describe('LLM smoke integration', () => {
     expect(Array.isArray(res.body.analysis.urls)).toBe(true)
     expect(typeof res.body.analysis.summary).toBe('string')
   }, 120_000)
+})
+
+describe('SearXNG smoke integration', () => {
+  const cfg = loadConfig(process.env)
+
+  it('queries SearXNG and returns structured results', async () => {
+    const ws = WebSearchAI.create(cfg.searxngUrl)
+
+    const results = await ws.search('typescript programming language', 3)
+
+    expect(Array.isArray(results)).toBe(true)
+    expect(results.length).toBeGreaterThan(0)
+    expect(results.length).toBeLessThanOrEqual(3)
+    for (const r of results) {
+      expect(typeof r.title).toBe('string')
+      expect(typeof r.url).toBe('string')
+      expect(typeof r.snippet).toBe('string')
+      expect(r.url).toMatch(/^https?:\/\//)
+    }
+  }, 30_000)
 })
 
 describe('Save draft smoke integration', () => {
