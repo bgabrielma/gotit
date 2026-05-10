@@ -1,6 +1,17 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import request from 'supertest'
-import { createChatAIMock, setupAuthedApp } from '../../helper.js'
+import {
+  createChatAIMock,
+  createWebSearchAIMock,
+  createPageFetcherMock,
+  setupAuthedApp,
+} from '../../helper.js'
+import {
+  ChatAI,
+  type ChatBackend,
+  type ChatCompleteArgs,
+  type ChatCompleteOptions,
+} from '../../../infra/chat-ai.js'
 
 /**
  * Creates an authenticated app/session pair for chat route tests.
@@ -10,6 +21,28 @@ async function setup(chatResponse = 'reply') {
   return setupAuthedApp({
     chatAI: chatMock.instance,
   })
+}
+
+/**
+ * Simulates a ChatAI backend that invokes the tool call handler on first call.
+ */
+function createToolCallChatMock(opts: {
+  toolCallArgs?: Record<string, string>
+  finalResponse: string
+}): { instance: ChatAI; complete: ReturnType<typeof vi.fn> } {
+  let callCount = 0
+  const complete = vi.fn(async (_args: ChatCompleteArgs, options?: ChatCompleteOptions) => {
+    callCount++
+    if (callCount === 1 && options?.onToolCall) {
+      await options.onToolCall('web_search', opts.toolCallArgs ?? { query: 'test query' })
+    }
+    return opts.finalResponse
+  })
+
+  return {
+    instance: ChatAI.fromBackend({ complete } as ChatBackend),
+    complete,
+  }
 }
 
 /**
@@ -42,5 +75,68 @@ describe('POST /chat', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ text: 'voice text', source: 'mic' })
     expect(res.status).toBe(400)
+  })
+
+  it('returns enriched response when LLM invokes web_search tool', async () => {
+    const searchMock = createWebSearchAIMock({
+      results: [{ title: 'Result 1', url: 'https://example.com', snippet: 'Example snippet' }],
+    })
+    const pageMock = createPageFetcherMock({
+      pages: new Map([['https://example.com', 'Full page content here']]),
+    })
+    const chatMock = createToolCallChatMock({
+      toolCallArgs: { query: 'what is example.com' },
+      finalResponse: 'Based on my search, example.com is a test domain.',
+    })
+
+    const { app, token } = await setupAuthedApp({
+      chatAI: chatMock.instance,
+      webSearchAI: searchMock.instance,
+      pageFetcher: pageMock.instance,
+    })
+
+    const res = await request(app)
+      .post('/chat')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ text: 'Tell me about example.com', source: 'text' })
+
+    expect(res.status).toBe(201)
+    expect(res.body.assistant_message.text).toBe(
+      'Based on my search, example.com is a test domain.'
+    )
+  })
+
+  it('returns normal response when LLM does not invoke web_search', async () => {
+    const { app, token } = await setupAuthedApp({
+      chatAI: createChatAIMock({ responses: ['Simple reply'] }).instance,
+    })
+
+    const res = await request(app)
+      .post('/chat')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ text: 'hello', source: 'text' })
+
+    expect(res.status).toBe(201)
+    expect(res.body.assistant_message.text).toBe('Simple reply')
+  })
+
+  it('returns normal response when LLM does not call web_search even if backend would fail', async () => {
+    const searchMock = createWebSearchAIMock({
+      failure: new Error('SearXNG down'),
+    })
+    const chatMock = createChatAIMock({ responses: ['Fallback reply'] })
+
+    const { app, token } = await setupAuthedApp({
+      chatAI: chatMock.instance,
+      webSearchAI: searchMock.instance,
+    })
+
+    const res = await request(app)
+      .post('/chat')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ text: 'search for something', source: 'text' })
+
+    expect(res.status).toBe(201)
+    expect(res.body.assistant_message.text).toBe('Fallback reply')
   })
 })
