@@ -1,0 +1,15 @@
+use_default_settings: true
+server:
+  secret_key: 'gotit-dev-searxng-key'
+  limiter: false
+search:
+  formats:
+    - json
+    - html
+engines:
+  - name: google
+    engine: google
+    shortcut: g
+  - name: duckduckgo
+    engine: duckduckgo
+    shortcut: ddg

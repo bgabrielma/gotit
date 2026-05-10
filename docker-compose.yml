@@ -30,6 +30,7 @@ services:
       GOTIT_LLM_BASE_URL: http://host.docker.internal:11434/v1
       GOTIT_DATA_DIR: ${GOTIT_DATA_DIR:-/app/data}
       GOTIT_VAULT_PATH: /vault
+      GOTIT_SEARXNG_URL: http://searxng:8080
       PORT: ${PORT:-3000}
     ports:
       - '${GOTIT_API_PORT:-3000}:${PORT:-3000}'
@@ -39,6 +40,21 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      searxng:
+        condition: service_healthy
+
+  searxng:
+    image: searxng/searxng:latest
+    restart: unless-stopped
+    ports:
+      - '${SEARXNG_PORT:-8888}:8080'
+    volumes:
+      - ./searxng-settings.yml:/etc/searxng/settings.yml:ro
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:8080/healthz']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   gotit_postgres_data:
