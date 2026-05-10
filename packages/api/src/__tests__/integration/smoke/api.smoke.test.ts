@@ -20,6 +20,8 @@ const smokeLlmConfig = LLMConnectorConfig.fromConfig(loadConfig(process.env))
 
 const SMOKE_DATA_DIR = tmpPath('smoke-data')
 
+const smokeCfg = loadConfig(process.env)
+
 /**
  * Builds an authenticated API app wired to real connectors for smoke testing.
  */
@@ -27,6 +29,7 @@ async function setupSmokeApp() {
   return setupAuthedApp({
     visionAI: VisionAI.create(smokeLlmConfig),
     chatAI: ChatAI.create(smokeLlmConfig),
+    webSearchAI: WebSearchAI.create(smokeCfg.searxngUrl),
     dataDir: SMOKE_DATA_DIR,
     version: 'smoke-test',
   })
@@ -114,4 +117,20 @@ describe('Save draft smoke integration', () => {
     expect(saveRes.body.markdown).toContain('# ')
     expect(saveRes.body.save_record_id).toBeTruthy()
   }, 240_000)
+
+  it('chat route with web search returns a non-empty response when LLM uses web_search tool', async () => {
+    const { app, token } = await setupSmokeApp()
+
+    const res = await request(app)
+      .post('/chat')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        source: 'text',
+        text: 'Search the web for the latest TypeScript version and tell me what you find.',
+      })
+
+    expect(res.status).toBe(201)
+    expect(typeof res.body.assistant_message.text).toBe('string')
+    expect(res.body.assistant_message.text.length).toBeGreaterThan(0)
+  }, 120_000)
 })
