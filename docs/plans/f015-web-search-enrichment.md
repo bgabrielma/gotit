@@ -170,7 +170,7 @@ Behaviors:
 - You have a web_search tool. Use it when the user asks for more details, when screenshot text is unclear, or when you need to verify information.`
 ```
 
-- [ ] **Step 2.3: Commit**
+- [x] **Step 2.3: Commit**
 
 ```bash
 git add packages/api/src/prompts/defaults.ts
@@ -190,7 +190,7 @@ git commit -m "feat(prompts): add web_search tool definition and update chat pro
 - Create: `packages/api/src/infra/web-search-ai.ts`
 - Create: `packages/api/src/__tests__/unit/infra/web-search-ai.test.ts`
 
-- [ ] **Step 3.1: Write failing tests for WebSearchAI**
+- [x] **Step 3.1: Write failing tests for WebSearchAI**
 
 Create `packages/api/src/__tests__/unit/infra/web-search-ai.test.ts`:
 
@@ -255,12 +255,12 @@ describe('WebSearchAI', () => {
 })
 ```
 
-- [ ] **Step 3.2: Run tests, expect failure**
+- [x] **Step 3.2: Run tests, expect failure**
 
 Run: `cd packages/api && pnpm test src/__tests__/unit/infra/web-search-ai.test.ts`
 Expected: FAIL — module not found
 
-- [ ] **Step 3.3: Implement WebSearchAI**
+- [x] **Step 3.3: Implement WebSearchAI**
 
 Create `packages/api/src/infra/web-search-ai.ts`:
 
@@ -329,12 +329,12 @@ class SearXNGBackend implements WebSearchBackend {
 }
 ```
 
-- [ ] **Step 3.4: Run tests, expect pass**
+- [x] **Step 3.4: Run tests, expect pass**
 
 Run: `cd packages/api && pnpm test src/__tests__/unit/infra/web-search-ai.test.ts`
 Expected: PASS
 
-- [ ] **Step 3.5: Run typecheck**
+- [x] **Step 3.5: Run typecheck**
 
 Run: `cd packages/api && pnpm typecheck`
 Expected: PASS
