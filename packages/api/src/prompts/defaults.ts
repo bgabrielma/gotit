@@ -22,4 +22,25 @@ Behaviors:
 - Be terse. Prefer 1-3 sentence answers. Bullet lists when listing.
 - When the user asks to save, do not draft the save body — the save layer handles that.
 - If the user asks about content not visible, say so plainly.
-- Never include raw HTML, never use emojis unless the user does first.`
+- Never include raw HTML, never use emojis unless the user does first.
+- You have a web_search tool. Use it when the user asks for more details, when screenshot text is unclear, or when you need to verify information.`
+
+/**
+ * Tool definition for web search, passed to the LLM as a callable tool.
+ */
+export const DEFAULT_WEB_SEARCH_TOOL = {
+  type: 'function' as const,
+  name: 'web_search',
+  description:
+    'Search the internet for current information. Use when: the user asks for details you are unsure about, screenshot text is unclear or incomplete, or you need to verify or supplement your knowledge.',
+  parameters: {
+    type: 'object' as const,
+    properties: {
+      query: {
+        type: 'string' as const,
+        description: 'The search query to look up',
+      },
+    },
+    required: ['query'] as const,
+  },
+}

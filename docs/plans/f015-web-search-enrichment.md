@@ -113,7 +113,7 @@ Append after the `GOTIT_VAULT_PATH` line block in `.env.template`:
 GOTIT_SEARXNG_URL=http://localhost:8888
 ```
 
-- [ ] **Step 1.6: Commit**
+- [x] **Step 1.6: Commit**
 
 ```bash
 git add packages/api/src/config.ts packages/api/src/__tests__/unit/config.test.ts .env.template
@@ -128,7 +128,7 @@ git commit -m "feat(config): add GOTIT_SEARXNG_URL with default"
 
 - Modify: `packages/api/src/prompts/defaults.ts`
 
-- [ ] **Step 2.1: Add DEFAULT_WEB_SEARCH_TOOL_DESCRIPTION to defaults.ts**
+- [x] **Step 2.1: Add DEFAULT_WEB_SEARCH_TOOL_DESCRIPTION to defaults.ts**
 
 In `packages/api/src/prompts/defaults.ts`, add after the existing `DEFAULT_CHAT_PROMPT` export:
 
@@ -154,7 +154,7 @@ export const DEFAULT_WEB_SEARCH_TOOL = {
 }
 ```
 
-- [ ] **Step 2.2: Update DEFAULT_CHAT_PROMPT with search awareness**
+- [x] **Step 2.2: Update DEFAULT_CHAT_PROMPT with search awareness**
 
 In `packages/api/src/prompts/defaults.ts`, update `DEFAULT_CHAT_PROMPT` — add a new behavior line at the end:
 
