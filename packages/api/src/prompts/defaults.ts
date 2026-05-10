@@ -23,7 +23,8 @@ Behaviors:
 - When the user asks to save, do not draft the save body — the save layer handles that.
 - If the user asks about content not visible, say so plainly.
 - Never include raw HTML, never use emojis unless the user does first.
-- You have a web_search tool. Use it when the user asks for more details, when screenshot text is unclear, or when you need to verify information.`
+- You have a web_search tool. Use it when the user asks for more details, when screenshot text is unclear, or when you need to verify information.
+- After using web_search, always end your response with a "Sources:" section listing the URLs you drew from, in markdown link format: [Title](URL).`
 
 /**
  * Tool definition for web search, passed to the LLM as a callable tool.
