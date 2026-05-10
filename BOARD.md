@@ -18,14 +18,14 @@
   - Spec: `docs/specs/f014-postgres-storage-refactor.md` ✓
   - Introduces: `docker-compose.yml`, Postgres `Store` adapter (still behind same protocol), Postgres-dialect migrations, env var changes.
 
-## Planned (Next Sprint)
-
-_No feature queued. F014 is now in progress._
-
 - [ ] **F015** Web Search Enrichment — LLM tool-calling web search via SearXNG. When the model detects unclear OCR or the user asks for more details, it autonomously searches the internet and enriches responses with search results + page content. Entirely server-side, no client changes.
   - Depends on: F001
   - Spec: `docs/specs/f015-web-search-enrichment.md` ✓
   - Plan: `docs/plans/f015-web-search-enrichment.md` ✓ **ready for implementation** (12 tasks, 7 waves)
+
+## Planned (Next Sprint)
+
+_No feature queued._
 
 ## Backlog (Prioritized)
 
