@@ -8,6 +8,8 @@ import { createApp, type AppDeps } from '../app.js'
 import type { StoreBackend } from '../infra/store.js'
 import { VisionAI } from '../infra/vision-ai.js'
 import { ChatAI } from '../infra/chat-ai.js'
+import { WebSearchAI, type SearchResult } from '../tools/web-search-ai.js'
+import { PageFetcher } from '../tools/page-fetcher.js'
 import { DEFAULT_CHAT_PROMPT, DEFAULT_VISION_PROMPT } from '../prompts/defaults.js'
 import { createFakeStoreBackend } from './fakes/store.js'
 
@@ -36,6 +38,8 @@ type TestAppOptions = {
   store?: StoreBackend
   visionAI?: VisionAI
   chatAI?: ChatAI
+  webSearchAI?: WebSearchAI
+  pageFetcher?: PageFetcher
 } & Partial<
   Pick<AppDeps, 'visionPrompt' | 'chatPersonaPrompt' | 'captureFolder' | 'dataDir' | 'version'>
 >
@@ -84,6 +88,8 @@ export function createTestApp(opts: TestAppOptions = {}): Express {
     store: opts.store ?? createFakeStoreBackend(),
     visionAI: opts.visionAI ?? createVisionAIMock().instance,
     chatAI: opts.chatAI ?? createChatAIMock().instance,
+    webSearchAI: opts.webSearchAI ?? createWebSearchAIMock().instance,
+    pageFetcher: opts.pageFetcher ?? createPageFetcherMock().instance,
     visionPrompt: opts.visionPrompt ?? DEFAULT_VISION_PROMPT,
     chatPersonaPrompt: opts.chatPersonaPrompt ?? DEFAULT_CHAT_PROMPT,
     captureFolder: opts.captureFolder ?? DEFAULT_CAPTURE_FOLDER,
@@ -138,6 +144,55 @@ export function createChatAIMock(
   return {
     instance: ChatAI.fromBackend({ complete }),
     complete,
+  }
+}
+
+/**
+ * Default search results used by mocked web search backends.
+ */
+export const DEFAULT_SEARCH_RESULTS: SearchResult[] = []
+
+/**
+ * Creates a mocked web search client wrapped in the WebSearchAI infrastructure class.
+ */
+export function createWebSearchAIMock(
+  opts: {
+    results?: SearchResult[]
+    failure?: Error
+  } = {}
+): { instance: WebSearchAI; search: ReturnType<typeof vi.fn> } {
+  const search = vi.fn(async () => {
+    if (opts.failure) {
+      throw opts.failure
+    }
+    return opts.results ?? DEFAULT_SEARCH_RESULTS
+  })
+
+  return {
+    instance: WebSearchAI.fromBackend({ search }),
+    search,
+  }
+}
+
+/**
+ * Creates a mocked page fetcher wrapped in the PageFetcher infrastructure class.
+ */
+export function createPageFetcherMock(
+  opts: {
+    pages?: Map<string, string>
+    failure?: Error
+  } = {}
+): { instance: PageFetcher; fetch: ReturnType<typeof vi.fn> } {
+  const fetchFn = vi.fn(async (url: string) => {
+    if (opts.failure) {
+      throw opts.failure
+    }
+    return opts.pages?.get(url) ?? ''
+  })
+
+  return {
+    instance: PageFetcher.fromBackend({ fetch: fetchFn }),
+    fetch: fetchFn,
   }
 }
 
