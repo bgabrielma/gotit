@@ -15,6 +15,10 @@ let package = Package(
     targets: [
         .target(name: "GotItUI", dependencies: ["GotItModels", "GotItInfra"],
                 resources: [.process("Resources")]),
-        .testTarget(name: "GotItUITests", dependencies: ["GotItUI", "GotItModels", "GotItInfra"]),
+        .testTarget(
+            name: "GotItUITests",
+            dependencies: ["GotItUI", "GotItModels", "GotItInfra"],
+            resources: [.copy("Fixtures")]
+        ),
     ]
 )

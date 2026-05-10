@@ -586,7 +586,7 @@ swift test --package-path apps/macos/Packages/GotItUI 2>&1 | tail -10
 
 Expected: all tests pass.
 
-- [ ] **Step 5.4: Commit**
+- [x] **Step 5.4: Commit**
 
 ```bash
 git add apps/macos/Packages/GotItUI/Sources/GotItUI/Chat/ImageLoader.swift \
@@ -606,7 +606,7 @@ git commit -m "feat(ui): add ImageLoader with ObservableObject state and unit te
 - Modify: `apps/macos/Packages/GotItUI/Sources/GotItUI/Panel/PanelHostingView.swift`
 - Modify: `apps/macos/App/AppDelegate.swift`
 
-- [ ] **Step 6.1: Update `MessageRow.swift`**
+- [x] **Step 6.1: Update `MessageRow.swift`**
 
 Replace the entire file with:
 
@@ -763,7 +763,7 @@ struct ParsedMessage {
 }
 ```
 
-- [ ] **Step 6.2: Update `ChatView.swift` to thread image auth through**
+- [x] **Step 6.2: Update `ChatView.swift` to thread image auth through**
 
 Add two new properties and a `.task` to read the token. The key changes are:
 
@@ -829,7 +829,7 @@ Add `.task { imageToken = try? await keychain?.read() }` on the `VStack(spacing:
 // ... existing .background modifier follows
 ```
 
-- [ ] **Step 6.3: Update `PanelHostingView.swift`**
+- [x] **Step 6.3: Update `PanelHostingView.swift`**
 
 Replace the entire file with:
 
@@ -854,7 +854,7 @@ public struct PanelHostingView: View {
 }
 ```
 
-- [ ] **Step 6.4: Update `AppDelegate.swift` — pass image parameters to `PanelHostingView`**
+- [x] **Step 6.4: Update `AppDelegate.swift` — pass image parameters to `PanelHostingView`**
 
 In `AppDelegate.swift`, find the `installPanel()` method:
 
@@ -880,7 +880,7 @@ private func installPanel() {
 }
 ```
 
-- [ ] **Step 6.5: Build to verify no compile errors**
+- [x] **Step 6.5: Build to verify no compile errors**
 
 ```bash
 cd apps/macos && xcodebuild -scheme GotIt -configuration Debug build -quiet 2>&1 | tail -20
@@ -888,7 +888,7 @@ cd apps/macos && xcodebuild -scheme GotIt -configuration Debug build -quiet 2>&1
 
 Expected: `** BUILD SUCCEEDED **`
 
-- [ ] **Step 6.6: Run full Swift test suite — no regressions**
+- [x] **Step 6.6: Run full Swift test suite — no regressions**
 
 ```bash
 swift test --package-path apps/macos/Packages/GotItModels && \

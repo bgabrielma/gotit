@@ -3,7 +3,15 @@ import GotItModels
 
 public struct MessageRow: View {
     let message: Message
-    public init(_ message: Message) { self.message = message }
+    let imageBaseURL: URL?
+    let imageToken: String?
+
+    public init(_ message: Message, imageBaseURL: URL? = nil, imageToken: String? = nil) {
+        self.message = message
+        self.imageBaseURL = imageBaseURL
+        self.imageToken = imageToken
+    }
+
     public var body: some View {
         switch message {
         case .userText(let p):
@@ -12,7 +20,7 @@ public struct MessageRow: View {
             let parsed = ParsedMessage(p.text)
             assistantBubble(body: parsed.body, sources: parsed.sources)
         case .screenCapture(let p):
-            bubble(text: "📷 " + p.analysis.summary, role: .assistant)
+            captureImageBubble(imageRef: p.imageRef)
         case .saveRecord(let p):
             bubble(text: "💾 saved: " + p.vaultPath, role: .assistant)
         }
@@ -52,6 +60,58 @@ public struct MessageRow: View {
             Spacer(minLength: 24)
         }
     }
+
+    private func captureImageBubble(imageRef: String) -> some View {
+        HStack {
+            if let imageBaseURL {
+                let imageURL = imageBaseURL.appendingPathComponent("images/\(imageRef)")
+                CaptureImageBubble(imageURL: imageURL, imageToken: imageToken)
+            } else {
+                bubble(text: "📷 screenshot", role: .assistant)
+            }
+            Spacer(minLength: 24)
+        }
+    }
+}
+
+/** Renders a single screen capture image with loading and error states. */
+private struct CaptureImageBubble: View {
+    let imageURL: URL
+    let imageToken: String?
+    @StateObject private var loader: ImageLoader
+
+    init(imageURL: URL, imageToken: String?) {
+        self.imageURL = imageURL
+        self.imageToken = imageToken
+        _loader = StateObject(wrappedValue: ImageLoader(imageURL: imageURL, token: imageToken))
+    }
+
+    var body: some View {
+        Group {
+            switch loader.state {
+            case .loading:
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.secondary.opacity(0.15))
+                    .aspectRatio(16 / 9, contentMode: .fit)
+            case .loaded(let nsImage):
+                Image(nsImage: nsImage)
+                    .resizable()
+                    .scaledToFit()
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            case .failed:
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.secondary.opacity(0.15))
+                    .aspectRatio(16 / 9, contentMode: .fit)
+                    .overlay(
+                        Image(systemName: "photo.slash")
+                            .foregroundStyle(.secondary)
+                    )
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .task { loader.load() }
+        .onDisappear { loader.cancel() }
+    }
 }
 
 struct SourceLink: Identifiable {
@@ -67,7 +127,6 @@ struct ParsedMessage {
     let sources: [SourceLink]
 
     init(_ raw: String) {
-        // Split on the first occurrence of a "Sources:" header (case-insensitive, preceded by newlines)
         let pattern = #"(?i)\n+sources:\n"#
         if let range = raw.range(of: pattern, options: .regularExpression) {
             body = String(raw[raw.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
@@ -79,7 +138,6 @@ struct ParsedMessage {
         }
     }
 
-    /// Parses `- [Title](URL)` lines into SourceLink values, skipping malformed entries.
     private static func parseLinks(from text: String) -> [SourceLink] {
         let linkPattern = #/- \[(?<title>[^\]]+)\]\((?<url>[^)]+)\)/#
         return text.components(separatedBy: .newlines).compactMap { line in

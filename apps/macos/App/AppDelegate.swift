@@ -74,7 +74,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func installPanel() {
-        let host = PanelHostingView(panel: deps.panel)
+        let host = PanelHostingView(
+            panel: deps.panel,
+            imageBaseURL: deps.imageBaseURL,
+            keychain: deps.keychain
+        )
         panelWindow = FloatingPanel(rootView: host)
         Task { await deps.panel.chat.start() }
     }

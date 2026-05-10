@@ -8,17 +8,22 @@ public struct ChatView: View {
     @ObservedObject var chat: ChatViewModel
     @State private var draft: String = ""
     @State private var isOnline: Bool = true
+    @State private var imageToken: String? = nil
     private let bottomAnchorID = "chat-bottom-anchor"
+    private let imageBaseURL: URL?
+    private let keychain: KeychainStore?
 
     private static let imageTypes: [UTType] = [.image, .png, .jpeg, .heic, .gif, .webP]
 
-    public init(panel: PanelViewModel) {
+    public init(panel: PanelViewModel, imageBaseURL: URL? = nil, keychain: KeychainStore? = nil) {
         self.panel = panel
         self.chat = panel.chat
+        self.imageBaseURL = imageBaseURL
+        self.keychain = keychain
     }
 
     public var body: some View {
-        let isInteractionBlocked = panel.isWorking || chat.isSending || panel.isShowingPermissionPrompt || panel.isAwaitingScreenshot
+        let isInteractionBlocked = panel.isWorking || panel.isProcessingScreenshot || chat.isSending || panel.isShowingPermissionPrompt || panel.isAwaitingScreenshot
 
         VStack(spacing: 0) {
             // Space for the transparent title bar / window controls
@@ -28,7 +33,7 @@ public struct ChatView: View {
                 ScrollView {
                     LazyVStack(alignment: .leading) {
                         ForEach(Array(chat.messages.enumerated()), id: \.offset) { _, m in
-                            MessageRow(m)
+                            MessageRow(m, imageBaseURL: imageBaseURL, imageToken: imageToken)
                         }
                         if let pending = chat.pendingUserText {
                             PendingMessageRow(text: pending)
@@ -171,6 +176,9 @@ public struct ChatView: View {
             )
         }
         .frame(width: 460)
+        .task {
+            imageToken = try? await keychain?.read()
+        }
         // Step 22.2: ⌘V paste — intercepts only when clipboard contains image data
         .background(
             Button("") {
