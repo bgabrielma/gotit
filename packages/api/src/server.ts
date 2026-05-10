@@ -7,6 +7,8 @@ import { ChatAI } from './infra/chat-ai.js'
 import { LLMConnectorConfig } from './infra/llm-connector-config.js'
 import { Store } from './infra/store.js'
 import { VisionAI } from './infra/vision-ai.js'
+import { PageFetcher } from './tools/page-fetcher.js'
+import { WebSearchAI } from './tools/web-search-ai.js'
 import { DEFAULT_CHAT_PROMPT, DEFAULT_VISION_PROMPT } from './prompts/defaults.js'
 
 const cfg = loadServerConfig(import.meta.url)
@@ -26,6 +28,8 @@ async function main(): Promise<void> {
     store,
     visionAI: VisionAI.create(llm),
     chatAI: ChatAI.create(llm),
+    webSearchAI: WebSearchAI.create(cfg.searxngUrl),
+    pageFetcher: PageFetcher.create(),
     visionPrompt: DEFAULT_VISION_PROMPT,
     chatPersonaPrompt: DEFAULT_CHAT_PROMPT,
     captureFolder: 'GotIt!',
