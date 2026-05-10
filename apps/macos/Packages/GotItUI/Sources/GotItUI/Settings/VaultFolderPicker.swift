@@ -7,8 +7,8 @@ public enum VaultFolderPicker {
         p.canCreateDirectories = true
         p.canChooseFiles = false
         p.allowsMultipleSelection = false
-        p.prompt = "Choose"
-        p.title = "Choose your captures folder"
+        p.prompt = Copy.vaultPickerButton
+        p.title = Copy.vaultPickerTitle
         return p.runModal() == .OK ? p.url : nil
     }
 }

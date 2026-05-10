@@ -15,6 +15,7 @@ import GotItInfra
         ])
         let vm = makeVM(api: api)
         let url = try writeTempPNG()
+        vm.isAwaitingScreenshot = true
         await vm.handleScreenshot(at: url, graceSeconds: 0)
         #expect(vm.chat.messages.count == 1)
     }
@@ -29,6 +30,7 @@ import GotItInfra
         ])
         let vm = makeVM(api: api)
         let url = try writeTempPNG()
+        vm.isAwaitingScreenshot = true
         let task = Task { await vm.handleScreenshot(at: url, graceSeconds: 1.0) }
         // Yield for 50ms so handleScreenshot starts and sets pendingScreenshot before we cancel.
         try await Task.sleep(nanoseconds: 50_000_000)

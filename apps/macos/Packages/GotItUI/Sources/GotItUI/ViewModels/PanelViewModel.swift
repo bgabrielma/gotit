@@ -7,6 +7,7 @@ public final class PanelViewModel: ObservableObject {
     @Published public var events: [PanelEvent] = []
     @Published public var isWorking = false
     @Published public var pendingCaptureImage: Data? = nil
+    @Published public var isAwaitingScreenshot = false
     public let chat: ChatViewModel
 
     private let api: APIClient
@@ -29,6 +30,7 @@ public final class PanelViewModel: ObservableObject {
 
     public func lookAgain() async {
         isWorking = true
+        events.append(.toast(Copy.screenshotCaptured))
         defer { isWorking = false; pendingCaptureImage = nil }
         let png: Data
         do { png = try await capture.captureActiveDisplay() }
@@ -59,12 +61,13 @@ public final class PanelViewModel: ObservableObject {
     }
 
     public func handleScreenshot(at url: URL, graceSeconds: Double) async {
-        guard !isProcessingScreenshot else { return }
+        guard !isProcessingScreenshot, isAwaitingScreenshot else { return }
         isProcessingScreenshot = true
+        isAwaitingScreenshot = false
         defer { isProcessingScreenshot = false }
 
         guard let data = try? Data(contentsOf: url) else { return }
-        events.append(.toast("Screenshot captured — sending to GotIt!"))
+        events.append(.toast(Copy.screenshotCaptured))
         pendingScreenshot = url
         pendingCaptureImage = data
         if graceSeconds > 0 {

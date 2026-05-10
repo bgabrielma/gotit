@@ -5,7 +5,7 @@ public struct OfflineBanner: View {
     public var body: some View {
         HStack {
             Image(systemName: "wifi.slash")
-            Text("You're offline. Reconnect the backend to send.")
+            Text(Copy.bannerOffline)
             Spacer()
         }
         .padding(8)

@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "GotItUI",
+    defaultLocalization: "en",
     platforms: [.macOS(.v13)],
     products: [
         .library(name: "GotItUI", targets: ["GotItUI"]),
@@ -12,7 +13,8 @@ let package = Package(
         .package(path: "../GotItInfra"),
     ],
     targets: [
-        .target(name: "GotItUI", dependencies: ["GotItModels", "GotItInfra"]),
+        .target(name: "GotItUI", dependencies: ["GotItModels", "GotItInfra"],
+                resources: [.process("Resources")]),
         .testTarget(name: "GotItUITests", dependencies: ["GotItUI", "GotItModels", "GotItInfra"]),
     ]
 )

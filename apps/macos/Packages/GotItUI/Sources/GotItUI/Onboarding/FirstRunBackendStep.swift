@@ -11,13 +11,13 @@ public struct FirstRunBackendStep: View {
     }
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Welcome to GotIt!").font(.title2)
-            Text("GotIt! captures your screen on demand and chats about what it sees.")
-            TextField("Backend URL", text: $url)
+            Text(Copy.onboardingTitle).font(.title2)
+            Text(Copy.onboardingDescription)
+            TextField(Copy.onboardingURLPlaceholder, text: $url)
             HStack {
-                Button("Connect") { if let u = URL(string: url) { onConnect(u) } }
+                Button(Copy.buttonConnect) { if let u = URL(string: url) { onConnect(u) } }
                     .keyboardShortcut(.defaultAction)
-                Button("Try without backend", action: onSkip)
+                Button(Copy.buttonSkip, action: onSkip)
             }
         }
         .padding()

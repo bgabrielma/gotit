@@ -11,6 +11,7 @@ public final class AppDependencies: ObservableObject {
     public let writer: MarkdownFileWriter
     public let bookmark: SecureBookmarkStore
     public let watcher: ScreenshotWatcher
+    public let keypressDetector: ScreenshotKeypressDetector
     public let hotkeys: HotkeyRegistrar
     public let capabilities: DeviceCapabilities
     public let settings: SettingsViewModel
@@ -26,6 +27,7 @@ public final class AppDependencies: ObservableObject {
         self.capture = ScreenCaptureServiceFactory.makeLive()
         self.writer = MarkdownFileWriterFactory.makeLive()
         self.watcher = ScreenshotWatcherFactory.makeLive()
+        self.keypressDetector = ScreenshotKeypressDetector()
         self.hotkeys = HotkeyRegistrarFactory.makeLive()
         self.capabilities = DeviceCapabilities(probe: LiveCapabilityProbe(bookmarkStore: bookmark))
         self.settings = SettingsViewModel(

@@ -1,0 +1,46 @@
+/* Input bar */
+"input.placeholder" = "Ask anything…";
+"button.look_again" = "Look again";
+"button.save" = "Save";
+"button.reset" = "Reset";
+"button.connect" = "Connect";
+"button.skip" = "Try without backend";
+"button.choose" = "Choose…";
+
+/* Notifications */
+"toast.screenshot_captured" = "Screenshot captured — sending to GotIt!";
+"toast.saved_to" = "Saved to %@";
+"awaiting.screenshot" = "Screenshot incoming…";
+
+/* Offline */
+"banner.offline" = "You're offline. Reconnect the backend to send.";
+
+/* Permission prompts */
+"permission.screen_recording.title" = "Screen Recording needed";
+"permission.screen_recording.message" = "Look again needs Screen Recording permission.";
+"permission.screen_recording.cta" = "Open System Settings";
+"permission.vault_folder.title" = "Choose your captures folder";
+"permission.vault_folder.message" = "GotIt! saves Markdown files into a folder you pick.";
+"permission.vault_folder.cta" = "Choose…";
+"permission.reconnect.title" = "Reconnect required.";
+"permission.reconnect.message" = "Your device session expired.";
+"permission.reconnect.cta" = "Retry";
+
+/* Onboarding */
+"onboarding.title" = "Welcome to GotIt!";
+"onboarding.description" = "GotIt! captures your screen on demand and chats about what it sees.";
+"onboarding.backend_url_placeholder" = "Backend URL";
+
+/* Settings */
+"settings.backend_url" = "Backend URL";
+"settings.vault_folder_label" = "Vault folder:";
+"settings.vault_not_chosen" = "— not chosen —";
+"settings.tab_general" = "General";
+"settings.tab_hotkeys" = "Hotkeys";
+
+/* Vault picker */
+"vault_picker.title" = "Choose your captures folder";
+"vault_picker.button" = "Choose";
+
+/* Hotkey recorder */
+"hotkey.open_panel" = "Open panel";

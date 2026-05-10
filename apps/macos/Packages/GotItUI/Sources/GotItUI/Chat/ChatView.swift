@@ -18,7 +18,7 @@ public struct ChatView: View {
     }
 
     public var body: some View {
-        let isInteractionBlocked = panel.isWorking || chat.isSending || panel.isShowingPermissionPrompt
+        let isInteractionBlocked = panel.isWorking || chat.isSending || panel.isShowingPermissionPrompt || panel.isAwaitingScreenshot
 
         VStack(spacing: 0) {
             // Space for the transparent title bar / window controls
@@ -32,6 +32,9 @@ public struct ChatView: View {
                         }
                         if let pending = chat.pendingUserText {
                             PendingMessageRow(text: pending)
+                        }
+                        if panel.isAwaitingScreenshot {
+                            AwaitingScreenshotRow()
                         }
                         if let capture = panel.pendingCaptureImage {
                             CapturePreviewRow(imageData: capture)
@@ -53,6 +56,9 @@ public struct ChatView: View {
                     scrollToBottom(using: proxy)
                 }
                 .onChange(of: panel.pendingCaptureImage != nil) { _ in
+                    scrollToBottom(using: proxy)
+                }
+                .onChange(of: panel.isAwaitingScreenshot) { _ in
                     scrollToBottom(using: proxy)
                 }
                 .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
@@ -87,7 +93,7 @@ public struct ChatView: View {
                 case .savedTo(let url):
                     NotificationBar(
                         icon: "checkmark.circle.fill",
-                        text: "Saved to \(url.lastPathComponent)",
+                        text: Copy.savedTo(url.lastPathComponent),
                         tint: .green,
                         autoDismissAfter: 5,
                         onDismiss: { panel.dismissToast() },
@@ -100,9 +106,9 @@ public struct ChatView: View {
                     )
                 case .permissionRequired(.screenRecording):
                     PermissionPrompt(
-                        title: "Screen Recording needed",
-                        message: "Look again needs Screen Recording permission.",
-                        cta: "Open System Settings"
+                        title: Copy.screenRecordingTitle,
+                        message: Copy.screenRecordingMessage,
+                        cta: Copy.screenRecordingCta
                     ) {
                         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
                             NSWorkspace.shared.open(url)
@@ -111,18 +117,18 @@ public struct ChatView: View {
                     .padding(.horizontal, 8).padding(.top, 4)
                 case .permissionRequired(.vaultFolder):
                     PermissionPrompt(
-                        title: "Choose your captures folder",
-                        message: "GotIt! saves Markdown files into a folder you pick.",
-                        cta: "Choose…"
+                        title: Copy.vaultFolderTitle,
+                        message: Copy.vaultFolderMessage,
+                        cta: Copy.vaultFolderCta
                     ) {
                         if let url = VaultFolderPicker.choose() { panel.didChooseVaultFolder(url) }
                     }
                     .padding(.horizontal, 8).padding(.top, 4)
                 case .reconnectRequired:
                     PermissionPrompt(
-                        title: "Reconnect required.",
-                        message: "Your device session expired.",
-                        cta: "Retry"
+                        title: Copy.reconnectTitle,
+                        message: Copy.reconnectMessage,
+                        cta: Copy.reconnectCta
                     ) { }
                     .padding(.horizontal, 8).padding(.top, 4)
                 case .error(let s):
@@ -183,5 +189,24 @@ public struct ChatView: View {
         withAnimation(.easeOut(duration: 0.2)) {
             proxy.scrollTo(bottomAnchorID, anchor: .bottom)
         }
+    }
+}
+
+private struct AwaitingScreenshotRow: View {
+    @State private var pulse = false
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "camera")
+                .font(.system(size: 13))
+                .opacity(pulse ? 0.3 : 1.0)
+                .animation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true), value: pulse)
+            Text(Copy.awaitingScreenshot)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            Spacer(minLength: 24)
+        }
+        .padding(8)
+        .onAppear { pulse = true }
     }
 }

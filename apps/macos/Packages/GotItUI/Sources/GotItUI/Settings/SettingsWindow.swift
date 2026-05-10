@@ -5,23 +5,23 @@ public struct SettingsView: View {
     public init(settings: SettingsViewModel) { self.settings = settings }
     public var body: some View {
         TabView {
-            generalTab.tabItem { Label("General", systemImage: "gear") }
-            HotkeyRecorderView().tabItem { Label("Hotkeys", systemImage: "keyboard") }
+            generalTab.tabItem { Label(Copy.settingsTabGeneral, systemImage: "gear") }
+            HotkeyRecorderView().tabItem { Label(Copy.settingsTabHotkeys, systemImage: "keyboard") }
         }
         .frame(width: 460, height: 280)
     }
 
     private var generalTab: some View {
         Form {
-            TextField("Backend URL", text: Binding(
+            TextField(Copy.settingsBackendURL, text: Binding(
                 get: { settings.backendURL.absoluteString },
                 set: { if let u = URL(string: $0) { settings.setBackendURL(u) } }
             ))
             HStack {
-                Text("Vault folder:")
-                Text(settings.vaultFolder?.path ?? "— not chosen —").foregroundStyle(.secondary)
+                Text(Copy.settingsVaultLabel)
+                Text(settings.vaultFolder?.path ?? Copy.settingsVaultNone).foregroundStyle(.secondary)
                 Spacer()
-                Button("Choose…") {
+                Button(Copy.buttonChoose) {
                     if let url = VaultFolderPicker.choose() { try? settings.chooseVaultFolder(url) }
                 }
             }

@@ -14,7 +14,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         installStatusItem()
         Task { await determineFirstRun() }
         if deps.config.autoDetectScreenshots {
+            deps.keypressDetector.start()
             Task { await deps.watcher.start(); await consumeScreenshots() }
+            Task { await consumeKeypresses() }
         }
         Task { await deps.hotkeys.registerOpenPanel { [weak self] in
             Task { @MainActor [weak self] in self?.togglePanel() }
@@ -92,6 +94,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if panelWindow?.isVisible == false { panelWindow?.toggle() }
             Task { await deps.panel.handleScreenshot(at: event.fileURL,
                                                      graceSeconds: Double(deps.config.screenshotGraceSeconds)) }
+        }
+    }
+
+    private func consumeKeypresses() async {
+        for await _ in deps.keypressDetector.keypresses() {
+            if panelWindow?.isVisible == false { panelWindow?.toggle() }
+            deps.panel.isAwaitingScreenshot = true
+            // Auto-clear after 15 s in case the screenshot never arrives.
+            Task { [weak self] in
+                try? await Task.sleep(for: .seconds(15))
+                self?.deps.panel.isAwaitingScreenshot = false
+            }
         }
     }
 }

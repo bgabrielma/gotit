@@ -17,15 +17,15 @@ public struct InputBar: View {
 
     public var body: some View {
         HStack(spacing: 8) {
-            TextField("Ask anything…", text: $text)
+            TextField(Copy.inputPlaceholder, text: $text)
                 .textFieldStyle(.roundedBorder)
                 .onSubmit(onSend)
                 .disabled(isBusy)
             Button(action: onAttach) { Image(systemName: "paperclip") }.disabled(isBusy)
             Divider().frame(height: 18)
-            Button("Look again", action: onLookAgain).disabled(isBusy)
-            Button("Save", action: onSave).disabled(isBusy)
-            Button("Reset", action: onReset).disabled(isBusy)
+            Button(Copy.buttonLookAgain, action: onLookAgain).disabled(isBusy)
+            Button(Copy.buttonSave, action: onSave).disabled(isBusy)
+            Button(Copy.buttonReset, action: onReset).disabled(isBusy)
         }
         .padding(8)
     }
