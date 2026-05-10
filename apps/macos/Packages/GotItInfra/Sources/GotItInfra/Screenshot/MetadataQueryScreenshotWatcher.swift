@@ -10,9 +10,9 @@ internal final class MetadataQueryScreenshotWatcher: NSObject, ScreenshotWatcher
         super.init()
         query.predicate = NSPredicate(format: "kMDItemIsScreenCapture = 1")
         query.searchScopes = [NSMetadataQueryUserHomeScope]
-        NotificationCenter.default.addObserver(self, selector: #selector(handleResults(_:)),
+        NotificationCenter.default.addObserver(self, selector: #selector(handleGather(_:)),
             name: .NSMetadataQueryDidFinishGathering, object: query)
-        NotificationCenter.default.addObserver(self, selector: #selector(handleResults(_:)),
+        NotificationCenter.default.addObserver(self, selector: #selector(handleUpdate(_:)),
             name: .NSMetadataQueryDidUpdate, object: query)
     }
 
@@ -26,15 +26,29 @@ internal final class MetadataQueryScreenshotWatcher: NSObject, ScreenshotWatcher
         return s
     }
 
-    @objc private func handleResults(_ note: Notification) {
+    // Initial gather: mark all existing screenshots as seen (don't emit them).
+    @objc private func handleGather(_ note: Notification) {
+        query.disableUpdates()
         for i in 0..<query.resultCount {
             guard let item = query.result(at: i) as? NSMetadataItem,
                   let path = item.value(forAttribute: NSMetadataItemPathKey) as? String else { continue }
+            seen.insert(URL(fileURLWithPath: path))
+        }
+        query.enableUpdates()
+    }
+
+    // Live update: emit only newly added items.
+    @objc private func handleUpdate(_ note: Notification) {
+        query.disableUpdates()
+        let added = note.userInfo?[NSMetadataQueryUpdateAddedItemsKey] as? [NSMetadataItem] ?? []
+        for item in added {
+            guard let path = item.value(forAttribute: NSMetadataItemPathKey) as? String else { continue }
             let url = URL(fileURLWithPath: path)
-            if seen.contains(url) { continue }
+            guard !seen.contains(url) else { continue }
             seen.insert(url)
             let date = (item.value(forAttribute: NSMetadataItemContentCreationDateKey) as? Date) ?? Date()
             continuation?.yield(ScreenshotEvent(fileURL: url, createdAt: date))
         }
+        query.enableUpdates()
     }
 }

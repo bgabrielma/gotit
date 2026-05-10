@@ -12,6 +12,6 @@ public protocol ScreenshotWatcher: Sendable {
 }
 
 public enum ScreenshotWatcherFactory {
-    public static func makeLive() -> ScreenshotWatcher { MetadataQueryScreenshotWatcher() }
+    public static func makeLive() -> ScreenshotWatcher { FSEventsScreenshotWatcher() }
     public static func makeNull() -> ScriptedScreenshotWatcher { ScriptedScreenshotWatcher() }
 }

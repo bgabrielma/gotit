@@ -22,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification,
             object: nil, queue: .main) { [weak self] _ in
             Task { await self?.deps.capabilities.reprobe() }
+            self?.deps.panel.clearScreenRecordingBanner()
         }
         // Amendment D: reprobe on display configuration changes
         NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification,
@@ -73,6 +74,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func installPanel() {
         let host = PanelHostingView(panel: deps.panel)
         panelWindow = FloatingPanel(rootView: host)
+        Task { await deps.panel.chat.start() }
     }
 
     private func swapToMainPanel() {
@@ -87,8 +89,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func consumeScreenshots() async {
         for await event in await deps.watcher.events() {
-            await deps.panel.handleScreenshot(at: event.fileURL,
-                                              graceSeconds: Double(deps.config.screenshotGraceSeconds))
+            if panelWindow?.isVisible == false { panelWindow?.toggle() }
+            Task { await deps.panel.handleScreenshot(at: event.fileURL,
+                                                     graceSeconds: Double(deps.config.screenshotGraceSeconds)) }
         }
     }
 }

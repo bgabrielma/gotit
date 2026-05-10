@@ -6,6 +6,7 @@ import GotItInfra
 public final class PanelViewModel: ObservableObject {
     @Published public var events: [PanelEvent] = []
     @Published public var isWorking = false
+    @Published public var pendingCaptureImage: Data? = nil
     public let chat: ChatViewModel
 
     private let api: APIClient
@@ -14,6 +15,7 @@ public final class PanelViewModel: ObservableObject {
     private let bookmark: SecureBookmarkStore
     private let monitor: OfflineMonitor
     @Published private var pendingScreenshot: URL?
+    private var isProcessingScreenshot = false
 
     public init(api: APIClient,
                 capture: ScreenCaptureService,
@@ -26,7 +28,8 @@ public final class PanelViewModel: ObservableObject {
     }
 
     public func lookAgain() async {
-        isWorking = true; defer { isWorking = false }
+        isWorking = true
+        defer { isWorking = false; pendingCaptureImage = nil }
         let png: Data
         do { png = try await capture.captureActiveDisplay() }
         catch ScreenCaptureError.permissionDenied {
@@ -34,6 +37,7 @@ public final class PanelViewModel: ObservableObject {
         } catch {
             events.append(.error(String(describing: error))); return
         }
+        pendingCaptureImage = png
         await sendCapture(image: png, source: .refresh)
     }
 
@@ -43,23 +47,48 @@ public final class PanelViewModel: ObservableObject {
         do {
             let r: CaptureResponse = try await api.send(.capture(image: image, source: source))
             chat.messages.append(.assistant(r.assistantMessage))
+        } catch APIError.http(status: 409, _) {
+            await chat.reset()
+            do {
+                let r: CaptureResponse = try await api.send(.capture(image: image, source: source))
+                chat.messages.append(.assistant(r.assistantMessage))
+            } catch APIError.unauthorized { events.append(.reconnectRequired) }
+            catch { events.append(.error(String(describing: error))) }
         } catch APIError.unauthorized { events.append(.reconnectRequired) }
         catch { events.append(.error(String(describing: error))) }
     }
 
     public func handleScreenshot(at url: URL, graceSeconds: Double) async {
+        guard !isProcessingScreenshot else { return }
+        isProcessingScreenshot = true
+        defer { isProcessingScreenshot = false }
+
+        guard let data = try? Data(contentsOf: url) else { return }
         events.append(.toast("Screenshot captured — sending to GotIt!"))
         pendingScreenshot = url
+        pendingCaptureImage = data
         if graceSeconds > 0 {
             try? await Task.sleep(nanoseconds: UInt64(graceSeconds * 1_000_000_000))
         }
-        guard pendingScreenshot == url else { return }
+        guard pendingScreenshot == url else { pendingCaptureImage = nil; return }
         pendingScreenshot = nil
-        guard let data = try? Data(contentsOf: url) else { return }
+        isWorking = true
+        defer { isWorking = false; pendingCaptureImage = nil }
         await sendCapture(image: data, source: .screenshot)
     }
 
     public func cancelPendingScreenshot() async { pendingScreenshot = nil }
+
+    public var isShowingPermissionPrompt: Bool {
+        guard let last = events.last else { return false }
+        if case .permissionRequired = last { return true }
+        if case .reconnectRequired = last { return true }
+        return false
+    }
+
+    public func clearScreenRecordingBanner() {
+        events.removeAll { $0 == .permissionRequired(.screenRecording) }
+    }
 
     public func didChooseVaultFolder(_ url: URL) {
         try? bookmark.save(folder: url)
