@@ -4,6 +4,9 @@ import { ChatRequestSchema } from '@got-it/shared'
 import { buildChatRequest } from '@got-it/core'
 import type { Message } from '@got-it/shared'
 import type { AppDeps } from '../app.js'
+import type { ChatCompleteOptions, ToolCallHandler } from '../infra/chat-ai.js'
+import type { SearchResult } from '../tools/web-search-ai.js'
+import { DEFAULT_WEB_SEARCH_TOOL } from '../prompts/defaults.js'
 import { deviceAuth } from '../middleware/auth.js'
 
 export function chatRouter(deps: AppDeps): Router {
@@ -44,9 +47,24 @@ export function chatRouter(deps: AppDeps): Router {
       userMessage,
     })
 
+    const onToolCall: ToolCallHandler = async (name, args) => {
+      if (name !== 'web_search') {
+        return 'Unknown tool'
+      }
+      const query = args['query'] ?? ''
+      const results = await deps.webSearchAI.search(query, 3)
+      const pages = await deps.pageFetcher.fetchAll(results.map((r) => r.url))
+      return formatSearchResults(results, pages)
+    }
+
+    const options: ChatCompleteOptions = {
+      tools: [DEFAULT_WEB_SEARCH_TOOL],
+      onToolCall,
+    }
+
     let assistantText: string
     try {
-      assistantText = await deps.chatAI.complete(payload)
+      assistantText = await deps.chatAI.complete(payload, options)
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'chat failure'
       res.status(502).json({ error: msg })
@@ -65,4 +83,13 @@ export function chatRouter(deps: AppDeps): Router {
   })
 
   return r
+}
+
+function formatSearchResults(results: SearchResult[], pages: Map<string, string>): string {
+  const sections = results.map((r) => {
+    const pageContent = pages.get(r.url)
+    const pageBlock = pageContent ? `\nPage content:\n${pageContent}` : ''
+    return `Title: ${r.title}\nURL: ${r.url}\nSnippet: ${r.snippet}${pageBlock}`
+  })
+  return `Web search results:\n\n${sections.join('\n\n---\n\n')}`
 }
