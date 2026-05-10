@@ -9,6 +9,7 @@ import { deviceRoute } from './routes/device.js'
 import { sessionsRouter } from './routes/sessions.js'
 import { captureRouter } from './routes/capture.js'
 import { chatRouter } from './routes/chat.js'
+import { imagesRouter } from './routes/images.js'
 import { saveRouter } from './routes/save.js'
 
 export type AppDeps = {
@@ -33,6 +34,7 @@ export function createApp(deps: AppDeps): Express {
   app.use('/sessions', sessionsRouter(deps))
   app.use('/capture', captureRouter(deps))
   app.use('/chat', chatRouter(deps))
+  app.use('/images', imagesRouter(deps))
   app.use('/save', saveRouter(deps))
 
   return app
