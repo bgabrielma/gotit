@@ -22,10 +22,20 @@ public final class FloatingPanel: NSPanel {
     public override var canBecomeKey: Bool { true }
     public override var canBecomeMain: Bool { false }
 
+    public override func sendEvent(_ event: NSEvent) {
+        if event.type == .keyDown && event.keyCode == 53 { orderOut(nil); return }
+        super.sendEvent(event)
+    }
+
     public func toggle(near point: CGPoint? = nil) {
         if isVisible { orderOut(nil); return }
+        show(near: point)
+    }
+
+    /// Show and steal keyboard focus — safe to call even when already visible.
+    public func show(near point: CGPoint? = nil) {
         if let point { setFrameTopLeftPoint(point) }
-        else { centerInActiveScreen() }
+        else if !isVisible { centerInActiveScreen() }
         makeKeyAndOrderFront(nil)
     }
 
