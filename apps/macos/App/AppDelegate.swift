@@ -85,6 +85,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             keychain: deps.keychain
         )
         panelWindow = FloatingPanel(rootView: host)
+        deps.panel.hideWindow = { [weak self] in self?.panelWindow?.orderOut(nil) }
+        deps.panel.showWindow = { [weak self] in self?.panelWindow?.makeKeyAndOrderFront(nil) }
         Task { await deps.panel.chat.start() }
         messageSub = deps.panel.chat.$messages
             .dropFirst()
