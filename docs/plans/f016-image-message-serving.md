@@ -898,7 +898,7 @@ swift test --package-path apps/macos/Packages/GotItUI
 
 Expected: all suites pass.
 
-- [ ] **Step 6.7: Commit**
+- [x] **Step 6.7: Commit**
 
 ```bash
 git add apps/macos/Packages/GotItUI/Sources/GotItUI/Chat/MessageRow.swift \
@@ -912,7 +912,7 @@ git commit -m "feat(ui): display screen capture images lazily in MessageRow with
 
 ## Task 7: Final validation
 
-- [ ] **Step 7.1: Run the full backend validation pipeline**
+- [x] **Step 7.1: Run the full backend validation pipeline**
 
 ```bash
 cd packages/api && pnpm typecheck && pnpm lint && pnpm test
@@ -920,7 +920,7 @@ cd packages/api && pnpm typecheck && pnpm lint && pnpm test
 
 Expected: zero errors, all tests pass.
 
-- [ ] **Step 7.2: Run purity check**
+- [x] **Step 7.2: Run purity check**
 
 ```bash
 pnpm purity-check
@@ -928,7 +928,7 @@ pnpm purity-check
 
 Expected: clean — no side effects introduced in `packages/core/`.
 
-- [ ] **Step 7.3: Run full macOS swift tests**
+- [x] **Step 7.3: Run full macOS swift tests**
 
 ```bash
 swift test --package-path apps/macos/Packages/GotItModels && \

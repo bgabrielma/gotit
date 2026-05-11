@@ -7,7 +7,6 @@ public struct ChatView: View {
     @ObservedObject var panel: PanelViewModel
     @ObservedObject var chat: ChatViewModel
     @State private var draft: String = ""
-    @State private var isOnline: Bool = true
     @State private var imageToken: String? = nil
     private let bottomAnchorID = "chat-bottom-anchor"
     private let imageBaseURL: URL?
@@ -28,7 +27,6 @@ public struct ChatView: View {
         VStack(spacing: 0) {
             // Space for the transparent title bar / window controls
             Spacer().frame(height: 28)
-            if !isOnline { OfflineBanner() }
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(alignment: .leading) {
@@ -69,7 +67,6 @@ public struct ChatView: View {
                 .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
                     scrollToBottom(using: proxy)
                 }
-                // Step 22.1: drag-drop images onto the chat area
                 .onDrop(of: Self.imageTypes, isTargeted: nil) { providers in
                     if isInteractionBlocked {
                         return false
@@ -160,6 +157,7 @@ public struct ChatView: View {
                         Task { await panel.sendCapture(image: data, source: .invoke) }
                     }
                 },
+
                 onLookAgain: {
                     guard !panel.isShowingPermissionPrompt else { return }
                     Task { await panel.lookAgain() }
@@ -179,7 +177,6 @@ public struct ChatView: View {
         .task {
             imageToken = try? await keychain?.read()
         }
-        // Step 22.2: ⌘V paste — intercepts only when clipboard contains image data
         .background(
             Button("") {
                 guard !panel.isShowingPermissionPrompt else { return }

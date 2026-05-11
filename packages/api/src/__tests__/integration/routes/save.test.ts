@@ -78,7 +78,7 @@ describe('POST /save', () => {
     expect(res.body.save_record_id).toBeTruthy()
   })
 
-  it('returns 422 when active session has no capture yet', async () => {
+  it('succeeds with empty analysis when active session has no capture yet', async () => {
     const visionMock = createVisionAIMock({ analysis: sampleAnalysis })
     const chatMock = createChatAIMock({ responses: ['Notes.'] })
 
@@ -89,6 +89,7 @@ describe('POST /save', () => {
     const token = await registerDevice(app, 'i')
     await createSession(app, token)
     const res = await request(app).post('/save').set('Authorization', `Bearer ${token}`).send({})
-    expect(res.status).toBe(422)
+    expect(res.status).toBe(201)
+    expect(res.body).toHaveProperty('vault_relative_path')
   })
 })

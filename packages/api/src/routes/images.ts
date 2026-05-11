@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs'
-import { join } from 'node:path'
+import { resolve } from 'node:path'
 import { Router } from 'express'
 import type { AppDeps } from '../app.js'
 import { deviceAuth } from '../middleware/auth.js'
@@ -22,7 +22,7 @@ export function imagesRouter(deps: AppDeps): Router {
       return
     }
 
-    const filePath = join(deps.dataDir, 'images', imageRef)
+    const filePath = resolve(deps.dataDir, 'images', imageRef)
     if (!existsSync(filePath)) {
       res.status(404).json({ error: 'not found' })
       return

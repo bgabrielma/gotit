@@ -17,7 +17,7 @@ final class ImageLoader: ObservableObject {
     @Published private(set) var state: LoadState = .loading
 
     private let imageURL: URL
-    private let token: String?
+    private var token: String?
     private let session: URLSession
     private var loadTask: Task<Void, Never>?
 
@@ -27,7 +27,13 @@ final class ImageLoader: ObservableObject {
         self.session = session
     }
 
-    /** Fires the image request. Safe to call multiple times - cancels any in-flight request first. */
+    /** Updates the auth token and re-fires the request. Called when the token arrives after initial render. */
+    func reload(token newToken: String?) {
+        token = newToken
+        load()
+    }
+
+    /** Fires the image request. Safe to call multiple times — cancels any in-flight request first. */
     func load() {
         loadTask?.cancel()
         loadTask = Task {

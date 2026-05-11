@@ -9,13 +9,14 @@ public struct DeviceRegistrationResponse: Codable, Equatable, Sendable {
 
 public struct CaptureResponse: Codable, Equatable, Sendable {
     public let messageID: String
+    public let imageRef: String
     public let analysis: AnalysisResult
     public let assistantMessage: AssistantPayload
-    public init(messageID: String, analysis: AnalysisResult, assistantMessage: AssistantPayload) {
-        self.messageID = messageID; self.analysis = analysis; self.assistantMessage = assistantMessage
+    public init(messageID: String, imageRef: String, analysis: AnalysisResult, assistantMessage: AssistantPayload) {
+        self.messageID = messageID; self.imageRef = imageRef; self.analysis = analysis; self.assistantMessage = assistantMessage
     }
     enum CodingKeys: String, CodingKey {
-        case messageID = "message_id", analysis, assistantMessage = "assistant_message"
+        case messageID = "message_id", imageRef = "image_ref", analysis, assistantMessage = "assistant_message"
     }
 }
 

@@ -19,17 +19,22 @@ export function saveRouter(deps: AppDeps): Router {
     if (!session) return res.status(409).json({ error: 'no active session' })
 
     const tail = await deps.store.listMessages({ session_id: session.id, limit: 50 })
-    const lastCapture = [...tail].reverse().find((m) => m.kind === 'screen_capture')
-    if (!lastCapture || lastCapture.kind !== 'screen_capture') {
-      return res.status(422).json({ error: 'active session has no screen capture to save' })
-    }
-    const lastAssistant = [...tail].reverse().find((m) => m.kind === 'assistant')
+    const reversed = [...tail].reverse()
+    const lastCapture = reversed.find((m) => m.kind === 'screen_capture')
+    const lastAssistant = reversed.find((m) => m.kind === 'assistant')
+    const lastUserText = reversed.find((m) => m.kind === 'user_text')
 
     const plan = resolveSaveFormat(parsed.data.instruction)
     let body: string
     if (plan.template === 'default') {
       body = lastAssistant && lastAssistant.kind === 'assistant' ? lastAssistant.text : ''
     } else {
+      const summary =
+        lastCapture && lastCapture.kind === 'screen_capture'
+          ? lastCapture.analysis.summary
+          : lastUserText && lastUserText.kind === 'user_text'
+            ? lastUserText.text
+            : '(no content)'
       try {
         body = await deps.chatAI.complete({
           system: deps.chatPersonaPrompt,
@@ -39,7 +44,7 @@ export function saveRouter(deps: AppDeps): Router {
               content:
                 `Render the following content per this instruction. Return ONLY the body markdown.\n\n` +
                 `Instruction: ${plan.instruction}\n\n` +
-                `Summary: ${lastCapture.analysis.summary}\n\n` +
+                `Summary: ${summary}\n\n` +
                 `Notes: ${lastAssistant && lastAssistant.kind === 'assistant' ? lastAssistant.text : '(none)'}`,
             },
           ],
@@ -49,7 +54,13 @@ export function saveRouter(deps: AppDeps): Router {
       }
     }
 
-    const title = lastCapture.analysis.summary.split('\n')[0] ?? 'Untitled'
+    const rawTitle =
+      lastCapture && lastCapture.kind === 'screen_capture'
+        ? lastCapture.analysis.summary
+        : lastUserText && lastUserText.kind === 'user_text'
+          ? lastUserText.text
+          : 'Chat Session'
+    const title = rawTitle.split('\n')[0] ?? 'Untitled'
     const savedAt = new Date()
     const slug = slugifySummary(title)
     const stamp = savedAt.toISOString().replace(/[:T]/g, '-').slice(0, 16)
@@ -59,7 +70,10 @@ export function saveRouter(deps: AppDeps): Router {
 
     const markdown = formatObsidianEntry({
       template: plan.template,
-      analysis: lastCapture.analysis,
+      analysis:
+        lastCapture && lastCapture.kind === 'screen_capture'
+          ? lastCapture.analysis
+          : { raw_text: '', urls: [], regions: [], context_kind: 'unknown' as const, summary: '' },
       body,
       sessionId: session.id,
       savedAt,

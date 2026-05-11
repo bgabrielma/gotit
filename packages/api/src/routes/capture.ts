@@ -99,6 +99,7 @@ export function captureRouter(deps: AppDeps): Router {
 
     res.status(201).json({
       message_id: captureMessage.id,
+      image_ref: imageRef,
       analysis,
       assistant_message: assistantMessage,
     })

@@ -20,6 +20,7 @@ import GotItInfra
         let api = APIClientFactory.makeNull(responses: [
             .capture: CaptureResponse(
                 messageID: "m1",
+                imageRef: "img1.png",
                 analysis: .init(rawText: "", urls: [], regions: [], contextKind: .unknown, summary: ""),
                 assistantMessage: .init(id: "a1", sessionID: "s1", text: "ok", createdAt: "now")
             )

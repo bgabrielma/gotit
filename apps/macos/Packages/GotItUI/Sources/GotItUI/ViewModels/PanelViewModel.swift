@@ -21,6 +21,9 @@ public final class PanelViewModel: ObservableObject {
     @Published private var pendingScreenshot: URL?
     @Published private(set) var isProcessingScreenshot = false
 
+    public var hideWindow: (() -> Void)?
+    public var showWindow: (() -> Void)?
+
     public init(api: APIClient,
                 capture: ScreenCaptureService,
                 writer: MarkdownFileWriter,
@@ -32,16 +35,24 @@ public final class PanelViewModel: ObservableObject {
     }
 
     public func lookAgain() async {
+        hideWindow?()
+        try? await Task.sleep(for: .milliseconds(300))
+
         isWorking = true
         events.append(.toast(Copy.screenshotCaptured))
         defer { isWorking = false; pendingCaptureImage = nil }
+
         let png: Data
         do { png = try await capture.captureActiveDisplay() }
         catch ScreenCaptureError.permissionDenied {
+            showWindow?()
             events.append(.permissionRequired(.screenRecording)); return
         } catch {
+            showWindow?()
             events.append(.error(String(describing: error))); return
         }
+
+        showWindow?()
         pendingCaptureImage = png
         await sendCapture(image: png, source: .refresh)
     }
@@ -51,11 +62,29 @@ public final class PanelViewModel: ObservableObject {
         if await monitor.isOnline == false { events.append(.offlineChanged(false)); return }
         do {
             let r: CaptureResponse = try await api.send(.capture(image: image, source: source))
+            let now = ISO8601DateFormatter().string(from: Date())
+            chat.messages.append(.screenCapture(.init(
+                id: r.messageID,
+                sessionID: r.assistantMessage.sessionID,
+                imageRef: r.imageRef,
+                analysis: r.analysis,
+                source: CaptureSource(rawValue: source.rawValue) ?? .invoke,
+                createdAt: now
+            )))
             chat.messages.append(.assistant(r.assistantMessage))
         } catch APIError.http(status: 409, _) {
             await chat.reset()
             do {
                 let r: CaptureResponse = try await api.send(.capture(image: image, source: source))
+                let now = ISO8601DateFormatter().string(from: Date())
+                chat.messages.append(.screenCapture(.init(
+                    id: r.messageID,
+                    sessionID: r.assistantMessage.sessionID,
+                    imageRef: r.imageRef,
+                    analysis: r.analysis,
+                    source: CaptureSource(rawValue: source.rawValue) ?? .invoke,
+                    createdAt: now
+                )))
                 chat.messages.append(.assistant(r.assistantMessage))
             } catch APIError.unauthorized { events.append(.reconnectRequired) }
             catch { events.append(.error(String(describing: error))) }
@@ -127,6 +156,12 @@ public final class PanelViewModel: ObservableObject {
         let draft: SaveDraftResponse
         do {
             draft = try await api.send(.save(instruction: instruction))
+        } catch APIError.http(status: 409, _) {
+            await chat.reset()
+            do {
+                draft = try await api.send(.save(instruction: instruction))
+            } catch APIError.unauthorized { events.append(.reconnectRequired); return }
+            catch { events.append(.error(String(describing: error))); return }
         } catch APIError.unauthorized { events.append(.reconnectRequired); return }
         catch { events.append(.error(String(describing: error))); return }
 

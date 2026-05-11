@@ -98,6 +98,7 @@ private struct CaptureImageBubble: View {
                     .resizable()
                     .scaledToFit()
                     .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .overlay(ImageClickOverlay { ImagePreviewPanel.show(image: nsImage) })
             case .failed:
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Color.secondary.opacity(0.15))
@@ -108,8 +109,9 @@ private struct CaptureImageBubble: View {
                     )
             }
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: 220, maxHeight: 130)
         .task { loader.load() }
+        .onChange(of: imageToken) { newToken in loader.reload(token: newToken) }
         .onDisappear { loader.cancel() }
     }
 }

@@ -9,6 +9,7 @@ import GotItInfra
         let api = APIClientFactory.makeNull(responses: [
             .capture: CaptureResponse(
                 messageID: "m1",
+                imageRef: "img1.png",
                 analysis: .init(rawText: "", urls: [], regions: [], contextKind: .unknown, summary: ""),
                 assistantMessage: .init(id: "a1", sessionID: "s1", text: "ok", createdAt: "now")
             )
@@ -17,13 +18,14 @@ import GotItInfra
         let url = try writeTempPNG()
         vm.isAwaitingScreenshot = true
         await vm.handleScreenshot(at: url, graceSeconds: 0)
-        #expect(vm.chat.messages.count == 1)
+        #expect(vm.chat.messages.count == 2)
     }
 
     @Test func cancelDuringGraceSuppressesSend() async throws {
         let api = APIClientFactory.makeNull(responses: [
             .capture: CaptureResponse(
                 messageID: "m2",
+                imageRef: "img2.png",
                 analysis: .init(rawText: "", urls: [], regions: [], contextKind: .unknown, summary: ""),
                 assistantMessage: .init(id: "a2", sessionID: "s2", text: "ok", createdAt: "now")
             )
