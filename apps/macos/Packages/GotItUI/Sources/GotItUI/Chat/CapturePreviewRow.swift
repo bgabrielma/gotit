@@ -15,6 +15,7 @@ struct CapturePreviewRow: View {
                         .frame(maxWidth: 220, maxHeight: 130)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.accentColor.opacity(0.3), lineWidth: 1))
+                        .overlay(ImageClickOverlay { ImagePreviewPanel.show(image: nsImage) })
                 }
             }
             HStack {
